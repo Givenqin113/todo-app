@@ -12,7 +12,7 @@
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
     <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
-    <!-- Firebase SDK (compat version for simplicity) -->
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <script>
@@ -57,7 +57,6 @@
             --tag-personal: #4ECDC4;
             --tag-health: #00D68F;
             --tag-study: #FFAA00;
-            --tag-urgent: #FF6B6B;
             --radius-sm: 8px;
             --radius-md: 12px;
             --radius-lg: 16px;
@@ -79,22 +78,16 @@
             overflow-x: hidden;
         }
 
-        /* Page transitions */
         .page { display: none; min-height: 100vh; min-height: 100dvh; }
         .page.active { display: block; animation: fadeIn 200ms ease; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        /* Scrollbar */
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-
-        /* Safe areas for iPhone */
         .safe-top { padding-top: env(safe-area-inset-top, 44px); }
         .safe-bottom { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); }
 
-        /* Toggle switch */
         .toggle-switch {
             width: 48px; height: 28px; border-radius: 14px;
             background: var(--color-bg-elevated); border: 1px solid var(--color-border-default);
@@ -107,7 +100,6 @@
         }
         .toggle-switch.active::after { transform: translateX(20px); }
 
-        /* Checkbox */
         .task-checkbox {
             width: 22px; height: 22px; border-radius: 6px;
             border: 2px solid var(--color-border-strong); background: transparent;
@@ -118,7 +110,6 @@
         .task-checkbox.checked svg { display: block; }
         .task-checkbox svg { display: none; }
 
-        /* Card styles */
         .card {
             background: var(--color-bg-surface);
             border-radius: var(--radius-md);
@@ -128,23 +119,17 @@
         }
         .card:active { transform: scale(0.985); }
 
-        /* Priority indicator */
-        .priority-bar {
-            width: 3px; border-radius: 2px; align-self: stretch; flex-shrink: 0;
-        }
+        .priority-bar { width: 3px; border-radius: 2px; align-self: stretch; flex-shrink: 0; }
 
-        /* Input styles */
         .input-field {
             background: var(--color-bg-input); border: 1px solid var(--color-border-default);
             border-radius: var(--radius-md); color: var(--color-text-primary);
             font-size: 15px; padding: 12px 16px; width: 100%; outline: none;
-            transition: border-color var(--transition-fast);
-            font-family: inherit;
+            transition: border-color var(--transition-fast); font-family: inherit;
         }
         .input-field:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-light); }
         .input-field::placeholder { color: var(--color-text-tertiary); }
 
-        /* Pill tags */
         .tag-pill {
             display: inline-flex; align-items: center; padding: 6px 14px;
             border-radius: var(--radius-full); font-size: 13px; font-weight: 500;
@@ -153,11 +138,9 @@
         }
         .tag-pill.selected { color: #fff; border-color: transparent; }
 
-        /* Progress bar */
         .progress-bar { height: 6px; border-radius: 3px; background: var(--color-bg-elevated); overflow: hidden; }
         .progress-fill { height: 100%; border-radius: 3px; transition: width 600ms cubic-bezier(0.4, 0, 0.2, 1); }
 
-        /* Primary button */
         .btn-primary {
             background: var(--color-primary); color: #fff; border: none;
             border-radius: var(--radius-lg); font-weight: 600; font-size: 15px;
@@ -169,7 +152,6 @@
         .btn-primary:active { transform: scale(0.98); background: var(--color-primary-active); }
         .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
-        /* Overlay */
         .overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.5);
             z-index: 100; display: none; align-items: flex-end; justify-content: center;
@@ -181,7 +163,6 @@
             padding: 24px; animation: slideUp 300ms ease;
         }
 
-        /* Calendar grid */
         .cal-cell {
             width: 40px; height: 40px; display: flex; align-items: center;
             justify-content: center; border-radius: 10px; font-size: 14px;
@@ -191,18 +172,13 @@
         .cal-cell.selected { background: var(--color-primary-light); color: var(--color-primary); }
         .cal-cell.other-month { color: var(--color-text-tertiary); opacity: 0.4; }
         .cal-cell:hover:not(.today) { background: var(--color-primary-lighter); }
-        .cal-cell .dot {
-            width: 4px; height: 4px; border-radius: 50%; background: var(--color-primary);
-            position: absolute; bottom: 4px;
-        }
+        .cal-cell .dot { width: 4px; height: 4px; border-radius: 50%; background: var(--color-primary); position: absolute; bottom: 4px; }
 
-        /* Stat card */
         .stat-card {
             background: var(--color-bg-surface); border-radius: var(--radius-lg);
             border: 1px solid var(--color-border-subtle); padding: 20px;
         }
 
-        /* Toast */
         .toast {
             position: fixed; top: 60px; left: 50%; transform: translateX(-50%) translateY(-20px);
             background: var(--color-bg-elevated); color: var(--color-text-primary);
@@ -212,7 +188,6 @@
         }
         .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-        /* Archive item */
         .archive-item {
             display: flex; align-items: center; justify-content: space-between;
             padding: 16px; cursor: pointer; border-radius: var(--radius-md);
@@ -220,23 +195,77 @@
         }
         .archive-item:hover { background: var(--color-primary-lighter); }
 
-        /* Reminder badge */
         .reminder-badge {
             display: inline-flex; align-items: center; gap: 4px;
             padding: 3px 10px; border-radius: var(--radius-full);
             background: var(--color-primary-light); color: var(--color-primary);
             font-size: 11px; font-weight: 600;
         }
+
+        /* Desktop-only tool buttons */
+        .desktop-tool { transition: opacity var(--transition-fast); }
+        .mobile-locked .desktop-tool.disabled-on-mobile {
+            opacity: 0.35; cursor: not-allowed; pointer-events: none;
+        }
+        .desktop-tool:not(.disabled-on-mobile) { pointer-events: auto; }
+
+        /* Today button */
+        .btn-today {
+            background: var(--color-primary-light); color: var(--color-primary);
+            border: none; border-radius: var(--radius-sm);
+            font-size: 12px; font-weight: 700; padding: 4px 8px;
+            cursor: pointer; transition: all var(--transition-fast);
+            font-family: inherit; line-height: 1;
+        }
+        .btn-today:hover { background: var(--color-primary); color: #fff; }
+
+        /* Tool bar */
+        .toolbar-btn {
+            display: flex; align-items: center; gap: 4px;
+            padding: 6px 10px; border-radius: var(--radius-sm);
+            background: transparent; border: 1px solid var(--color-border-default);
+            color: var(--color-text-secondary); font-size: 12px; font-weight: 500;
+            cursor: pointer; transition: all var(--transition-fast);
+            white-space: nowrap; font-family: inherit;
+        }
+        .toolbar-btn:hover:not(:disabled) { background: var(--color-primary-light); color: var(--color-primary); border-color: var(--color-primary); }
+        .toolbar-btn.danger:hover:not(:disabled) { background: var(--state-error-light); color: var(--state-error); border-color: var(--state-error); }
+        .toolbar-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+        /* Hidden file input */
+        #file-import { display: none; }
+
+        /* Confirm overlay */
+        .confirm-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+            z-index: 150; display: none; align-items: center; justify-content: center;
+        }
+        .confirm-overlay.active { display: flex; }
+        .confirm-box {
+            background: var(--color-bg-surface); border-radius: var(--radius-lg);
+            padding: 24px; width: 90%; max-width: 320px; text-align: center;
+            border: 1px solid var(--color-border-subtle);
+            box-shadow: var(--shadow-elevated);
+        }
+        .confirm-box p { font-size: 15px; margin-bottom: 20px; line-height: 1.5; }
+        .confirm-actions { display: flex; gap: 12px; }
+        .confirm-actions button {
+            flex: 1; padding: 10px; border-radius: var(--radius-md);
+            font-size: 14px; font-weight: 600; cursor: pointer;
+            border: none; transition: all var(--transition-fast); font-family: inherit;
+        }
+        .btn-confirm-cancel { background: var(--color-bg-elevated); color: var(--color-text-secondary); }
+        .btn-confirm-cancel:hover { background: var(--color-border-default); }
+        .btn-confirm-ok { background: var(--state-error); color: #fff; }
+        .btn-confirm-ok:hover { background: #e55a5a; }
     </style>
 </head>
 <body>
-    <!-- Toast notification -->
     <div id="toast" class="toast"></div>
 
     <!-- ===================== PAGE 1: Calendar Home ===================== -->
     <div id="page-home" class="page active">
         <div class="safe-top" style="background: var(--color-bg-base);">
-            <!-- Status bar + nav -->
             <div class="flex items-center justify-between px-4 pt-2 pb-1" style="height: 44px;">
                 <div class="flex items-center gap-2">
                     <span style="font-size: 20px; font-weight: 700; letter-spacing: -0.02em;">我的待办</span>
@@ -253,20 +282,18 @@
         <div style="padding: 0 16px 100px;">
             <!-- Calendar Section -->
             <div class="card" style="padding: 20px; margin-bottom: 20px;">
-                <!-- Month header -->
                 <div class="flex items-center justify-between mb-4">
                     <button onclick="changeMonth(-1)" class="flex h-8 w-8 items-center justify-center rounded-lg" style="border: 1px solid var(--color-border-default);">
                         <i data-lucide="chevron-left" style="width:16px;height:16px;color:var(--color-text-secondary)"></i>
                     </button>
-                    <span id="cal-month-label" style="font-size: 17px; font-weight: 600;"></span>
-                    <div class="flex items-center gap-2">
-                        <button onclick="changeMonth(1)" class="flex h-8 w-8 items-center justify-center rounded-lg" style="border: 1px solid var(--color-border-default);">
-                            <i data-lucide="chevron-right" style="width:16px;height:16px;color:var(--color-text-secondary)"></i>
-                        </button>
+                    <div class="flex items-center gap-3">
+                        <span id="cal-month-label" style="font-size: 17px; font-weight: 600;"></span>
+                        <button onclick="goToToday()" class="btn-today" title="回到今天">今</button>
                     </div>
+                    <button onclick="changeMonth(1)" class="flex h-8 w-8 items-center justify-center rounded-lg" style="border: 1px solid var(--color-border-default);">
+                        <i data-lucide="chevron-right" style="width:16px;height:16px;color:var(--color-text-secondary)"></i>
+                    </button>
                 </div>
-
-                <!-- Week day headers -->
                 <div class="grid grid-cols-7 gap-1 mb-2" style="text-align: center;">
                     <span style="font-size: 11px; color: var(--color-text-tertiary); font-weight: 600;">日</span>
                     <span style="font-size: 11px; color: var(--color-text-tertiary); font-weight: 600;">一</span>
@@ -276,14 +303,28 @@
                     <span style="font-size: 11px; color: var(--color-text-tertiary); font-weight: 600;">五</span>
                     <span style="font-size: 11px; color: var(--color-text-tertiary); font-weight: 600;">六</span>
                 </div>
-                <!-- Calendar grid -->
                 <div id="cal-grid" class="grid grid-cols-7 gap-1" style="justify-items: center;"></div>
             </div>
 
+            <!-- Toolbar: export / import / clear (desktop-only) -->
+            <div class="flex items-center gap-2 mb-4 flex-wrap" id="toolbar">
+                <button onclick="exportCSV()" class="toolbar-btn desktop-tool disabled-on-mobile" id="btn-export">
+                    <i data-lucide="download" style="width:14px;height:14px;"></i>
+                    <span>导出日程</span>
+                </button>
+                <button onclick="document.getElementById('file-import').click()" class="toolbar-btn desktop-tool disabled-on-mobile" id="btn-import">
+                    <i data-lucide="upload" style="width:14px;height:14px;"></i>
+                    <span>导入日程</span>
+                </button>
+                <button onclick="confirmClearAll()" class="toolbar-btn danger desktop-tool disabled-on-mobile" id="btn-clear">
+                    <i data-lucide="trash-2" style="width:14px;height:14px;"></i>
+                    <span>清空所有</span>
+                </button>
+            </div>
+            <input type="file" id="file-import" accept=".csv" onchange="importCSV(event)">
+
             <!-- Task list -->
             <div id="task-list"></div>
-
-            <!-- Empty state -->
             <div id="empty-state" class="hidden" style="text-align: center; padding: 48px 20px;">
                 <div style="font-size: 48px; margin-bottom: 12px; opacity: 0.3;">✓</div>
                 <p style="color: var(--color-text-secondary); font-size: 15px;">今天没有待办事项</p>
@@ -311,9 +352,7 @@
                 <div style="width: 36px;"></div>
             </div>
         </div>
-
         <div style="padding: 0 16px 40px;">
-            <!-- Completion ring -->
             <div class="stat-card" style="text-align: center; margin-bottom: 16px;">
                 <div style="position: relative; width: 140px; height: 140px; margin: 0 auto 12px;">
                     <canvas id="ring-chart" width="140" height="140"></canvas>
@@ -324,25 +363,17 @@
                 </div>
                 <p id="stat-summary" style="font-size: 14px; color: var(--color-text-secondary);"></p>
             </div>
-
-            <!-- Week/Month toggle -->
             <div class="flex items-center gap-2 mb-4 p-1" style="background: var(--color-bg-surface); border-radius: var(--radius-md); display: inline-flex;">
                 <button onclick="switchStatTab('week')" id="tab-week" class="flex-1 px-4 py-2 rounded-lg text-center" style="font-size: 13px; font-weight: 600; transition: all 200ms;">本周</button>
                 <button onclick="switchStatTab('month')" id="tab-month" class="flex-1 px-4 py-2 rounded-lg text-center" style="font-size: 13px; font-weight: 600; transition: all 200ms;">本月</button>
             </div>
-
-            <!-- Bar chart -->
             <div class="card" style="padding: 16px; margin-bottom: 16px;">
                 <canvas id="bar-chart" height="180"></canvas>
             </div>
-
-            <!-- Category completion -->
             <div class="stat-card mb-4">
                 <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">分类完成情况</h3>
                 <div id="category-stats"></div>
             </div>
-
-            <!-- Archived -->
             <div class="archive-item" onclick="showArchived()">
                 <div class="flex items-center gap-3">
                     <i data-lucide="archive" style="width:18px;height:18px;color:var(--color-text-secondary)"></i>
@@ -366,26 +397,18 @@
                 <span id="form-title" style="font-size: 17px; font-weight: 600;">新建待办</span>
                 <div style="width: 36px;"></div>
             </div>
-
-            <!-- Title -->
             <div class="mb-5">
                 <label style="font-size: 13px; color: var(--color-text-secondary); font-weight: 500; display: block; margin-bottom: 8px;">任务标题</label>
                 <input type="text" id="input-title" class="input-field" placeholder="输入任务标题..." maxlength="50">
             </div>
-
-            <!-- Date -->
             <div class="mb-5">
                 <label style="font-size: 13px; color: var(--color-text-secondary); font-weight: 500; display: block; margin-bottom: 8px;">日期</label>
                 <input type="date" id="input-date" class="input-field">
             </div>
-
-            <!-- Time -->
             <div class="mb-5">
                 <label style="font-size: 13px; color: var(--color-text-secondary); font-weight: 500; display: block; margin-bottom: 8px;">时间</label>
                 <input type="time" id="input-time" class="input-field">
             </div>
-
-            <!-- Tags -->
             <div class="mb-5">
                 <label style="font-size: 13px; color: var(--color-text-secondary); font-weight: 500; display: block; margin-bottom: 8px;">标签</label>
                 <div class="flex gap-2 flex-wrap" id="tag-selector">
@@ -395,8 +418,6 @@
                     <span class="tag-pill" data-tag="study" onclick="selectTag('study')" style="background: var(--state-warning-light); color: var(--tag-study);">学习</span>
                 </div>
             </div>
-
-            <!-- Priority -->
             <div class="mb-5">
                 <label style="font-size: 13px; color: var(--color-text-secondary); font-weight: 500; display: block; margin-bottom: 8px;">优先级</label>
                 <div class="flex gap-2">
@@ -405,8 +426,10 @@
                     <button onclick="selectPriority('low')" class="priority-btn flex-1 py-3 rounded-xl text-center" style="font-size: 14px; font-weight: 600; border: 1px solid var(--color-border-default); background: var(--color-bg-input); color: var(--color-text-secondary); transition: all 200ms;" data-priority="low">低</button>
                 </div>
             </div>
-
-            <!-- Reminder -->
+            <div class="mb-5">
+                <label style="font-size: 13px; color: var(--color-text-secondary); font-weight: 500; display: block; margin-bottom: 8px;">负责人</label>
+                <input type="text" id="input-assignee" class="input-field" placeholder="输入负责人..." maxlength="30">
+            </div>
             <div class="flex items-center justify-between mb-6 py-3 px-4 rounded-xl" style="background: var(--color-bg-input); border: 1px solid var(--color-border-default);">
                 <div>
                     <span style="font-size: 15px; font-weight: 500;">定时提醒</span>
@@ -414,8 +437,6 @@
                 </div>
                 <div id="toggle-reminder" class="toggle-switch" onclick="toggleReminder()"></div>
             </div>
-
-            <!-- Save button -->
             <button id="btn-save" onclick="saveTask()" class="btn-primary safe-bottom">保存</button>
         </div>
     </div>
@@ -434,8 +455,24 @@
         </div>
     </div>
 
+    <!-- ===================== CONFIRM OVERLAY ===================== -->
+    <div id="confirm-overlay" class="confirm-overlay" onclick="event.target===this && closeConfirm()">
+        <div class="confirm-box">
+            <p id="confirm-msg"></p>
+            <div class="confirm-actions">
+                <button onclick="closeConfirm()" class="btn-confirm-cancel">取消</button>
+                <button id="confirm-ok-btn" onclick="" class="btn-confirm-ok">确认</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ===================== APP JAVASCRIPT ===================== -->
     <script>
+    // ===== MOBILE DETECTION =====
+    function isMobileOrStandalone() {
+        return window.navigator.standalone === true || /iPad|iPhone|iPod/.test(navigator.userAgent) || (window.innerWidth <= 500 && 'ontouchstart' in window);
+    }
+
     // ===== FIREBASE CONFIG =====
     const FIREBASE_DB_URL = 'https://my-todo-app-49e91-default-rtdb.asia-southeast1.firebasedatabase.app';
     let firebaseReady = false;
@@ -451,17 +488,12 @@
             });
             dbRef = firebase.database().ref('tasks');
             firebaseReady = true;
-            // Update sync indicator
             const indicator = document.getElementById('sync-indicator');
             if (indicator) { indicator.style.opacity = '1'; indicator.title = '云端已同步'; }
             listenForRemoteChanges();
-            // First load: push local data to Firebase if remote is empty
             dbRef.once('value', (snapshot) => {
-                if (!snapshot.val() && tasks.length > 0) {
-                    pushToFirebase();
-                }
+                if (!snapshot.val() && tasks.length > 0) pushToFirebase();
             });
-            console.log('Firebase connected');
         } catch (e) {
             console.warn('Firebase init failed, using local-only mode:', e.message);
             firebaseReady = false;
@@ -473,7 +505,6 @@
         dbRef.on('value', (snapshot) => {
             const remoteData = snapshot.val();
             if (remoteData && Array.isArray(remoteData)) {
-                // Remote data takes precedence on first load or if remote has newer changes
                 tasks = remoteData;
                 saveDataLocal();
                 renderHome();
@@ -507,50 +538,52 @@
         if (tasks.length === 0) seedDemoData();
     }
 
-    function saveData() {
-        saveDataLocal();
-        pushToFirebase();
-    }
-
-    function saveDataLocal() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
-    }
+    function saveData() { saveDataLocal(); pushToFirebase(); }
+    function saveDataLocal() { localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); }
 
     function seedDemoData() {
         const today = new Date();
-        const y = today.getFullYear(), m = String(today.getMonth()+1).padStart(2,'0'), d = String(today.getDate()).padStart(2,'0');
-        const todayStr = `${y}-${m}-${d}`;
-        const tasks_data = [
-            { id: genId(), title: '完成周报', date: todayStr, time: '09:00', tag: 'work', priority: 'high', reminder: true, completed: false, archived: false },
-            { id: genId(), title: '团队午餐', date: todayStr, time: '12:00', tag: 'personal', priority: 'low', reminder: false, completed: true, archived: false },
-            { id: genId(), title: '产品评审会议', date: todayStr, time: '14:30', tag: 'work', priority: 'high', reminder: true, completed: false, archived: false },
-            { id: genId(), title: '健身 - 跑步 5km', date: todayStr, time: '18:00', tag: 'health', priority: 'medium', reminder: true, completed: false, archived: false },
-            { id: genId(), title: '阅读技术文档', date: todayStr, time: '21:00', tag: 'study', priority: 'low', reminder: false, completed: false, archived: false },
-            { id: genId(), title: '提交季度总结', date: getDateOffset(-1), time: '10:00', tag: 'work', priority: 'high', reminder: true, completed: true, archived: false },
-            { id: genId(), title: '买生日礼物', date: getDateOffset(-1), time: '15:00', tag: 'personal', priority: 'medium', reminder: false, completed: true, archived: false },
-            { id: genId(), title: '晨间冥想', date: getDateOffset(-2), time: '07:00', tag: 'health', priority: 'low', reminder: true, completed: true, archived: false },
-            { id: genId(), title: '修复线上 bug', date: getDateOffset(-3), time: '11:00', tag: 'work', priority: 'high', reminder: true, completed: true, archived: false },
-            { id: genId(), title: '学完 React 章节', date: getDateOffset(-4), time: '20:00', tag: 'study', priority: 'medium', reminder: false, completed: true, archived: false },
-            { id: genId(), title: '牙科检查', date: getDateOffset(-5), time: '10:30', tag: 'health', priority: 'medium', reminder: true, completed: true, archived: false },
-            { id: genId(), title: '写项目提案', date: getDateOffset(-6), time: '14:00', tag: 'work', priority: 'high', reminder: true, completed: true, archived: false },
-            { id: genId(), title: '整理书架', date: getDateOffset(1), time: '10:00', tag: 'personal', priority: 'low', reminder: false, completed: false, archived: false },
-            { id: genId(), title: '客户演示准备', date: getDateOffset(1), time: '15:00', tag: 'work', priority: 'high', reminder: true, completed: false, archived: false },
-            { id: genId(), title: '瑜伽课', date: getDateOffset(2), time: '08:00', tag: 'health', priority: 'medium', reminder: true, completed: false, archived: false },
-            { id: genId(), title: '和朋友聚餐', date: getDateOffset(2), time: '19:00', tag: 'personal', priority: 'low', reminder: false, completed: false, archived: false },
-            { id: genId(), title: '上线部署', date: getDateOffset(3), time: '09:00', tag: 'work', priority: 'high', reminder: true, completed: false, archived: false },
-            { id: genId(), title: '看设计书籍', date: getDateOffset(-7), time: '21:00', tag: 'study', priority: 'low', reminder: false, completed: true, archived: false },
-            { id: genId(), title: '做早餐', date: getDateOffset(-8), time: '07:30', tag: 'health', priority: 'low', reminder: false, completed: true, archived: true },
-            { id: genId(), title: '部门周会', date: getDateOffset(-8), time: '09:30', tag: 'work', priority: 'medium', reminder: true, completed: true, archived: true },
-            { id: genId(), title: '给妈妈打电话', date: getDateOffset(-10), time: '19:00', tag: 'personal', priority: 'medium', reminder: false, completed: true, archived: true },
+        const todayStr = fmtDate(today);
+        tasks = [
+            { id: genId(), title: '完成周报', date: todayStr, time: '09:00', tag: 'work', priority: 'high', reminder: true, completed: false, archived: false, assignee: '张三' },
+            { id: genId(), title: '团队午餐', date: todayStr, time: '12:00', tag: 'personal', priority: 'low', reminder: false, completed: true, archived: false, assignee: '' },
+            { id: genId(), title: '产品评审会议', date: todayStr, time: '14:30', tag: 'work', priority: 'high', reminder: true, completed: false, archived: false, assignee: '李四' },
+            { id: genId(), title: '健身 - 跑步 5km', date: todayStr, time: '18:00', tag: 'health', priority: 'medium', reminder: true, completed: false, archived: false, assignee: '' },
+            { id: genId(), title: '阅读技术文档', date: todayStr, time: '21:00', tag: 'study', priority: 'low', reminder: false, completed: false, archived: false, assignee: '' },
+            { id: genId(), title: '提交季度总结', date: getDateOffset(-1), time: '10:00', tag: 'work', priority: 'high', reminder: true, completed: true, archived: false, assignee: '张三' },
+            { id: genId(), title: '买生日礼物', date: getDateOffset(-1), time: '15:00', tag: 'personal', priority: 'medium', reminder: false, completed: true, archived: false, assignee: '' },
+            { id: genId(), title: '晨间冥想', date: getDateOffset(-2), time: '07:00', tag: 'health', priority: 'low', reminder: true, completed: true, archived: false, assignee: '' },
+            { id: genId(), title: '修复线上 bug', date: getDateOffset(-3), time: '11:00', tag: 'work', priority: 'high', reminder: true, completed: true, archived: false, assignee: '王五' },
+            { id: genId(), title: '学完 React 章节', date: getDateOffset(-4), time: '20:00', tag: 'study', priority: 'medium', reminder: false, completed: true, archived: false, assignee: '' },
+            { id: genId(), title: '牙科检查', date: getDateOffset(-5), time: '10:30', tag: 'health', priority: 'medium', reminder: true, completed: true, archived: false, assignee: '' },
+            { id: genId(), title: '写项目提案', date: getDateOffset(-6), time: '14:00', tag: 'work', priority: 'high', reminder: true, completed: true, archived: false, assignee: '李四' },
+            { id: genId(), title: '整理书架', date: getDateOffset(1), time: '10:00', tag: 'personal', priority: 'low', reminder: false, completed: false, archived: false, assignee: '' },
+            { id: genId(), title: '客户演示准备', date: getDateOffset(1), time: '15:00', tag: 'work', priority: 'high', reminder: true, completed: false, archived: false, assignee: '张三' },
+            { id: genId(), title: '瑜伽课', date: getDateOffset(2), time: '08:00', tag: 'health', priority: 'medium', reminder: true, completed: false, archived: false, assignee: '' },
+            { id: genId(), title: '和朋友聚餐', date: getDateOffset(2), time: '19:00', tag: 'personal', priority: 'low', reminder: false, completed: false, archived: false, assignee: '' },
+            { id: genId(), title: '上线部署', date: getDateOffset(3), time: '09:00', tag: 'work', priority: 'high', reminder: true, completed: false, archived: false, assignee: '王五' },
         ];
-        tasks = tasks_data;
         saveData();
     }
 
     function genId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 5); }
     function getDateOffset(days) {
         const d = new Date(); d.setDate(d.getDate() + days);
+        return fmtDate(d);
+    }
+    function fmtDate(d) {
         return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    // ===== MOBILE LOCK =====
+    function applyMobileLock() {
+        const toolbar = document.getElementById('toolbar');
+        if (!toolbar) return;
+        if (isMobileOrStandalone()) {
+            toolbar.classList.add('mobile-locked');
+        } else {
+            toolbar.classList.remove('mobile-locked');
+        }
     }
 
     // ===== NAVIGATION =====
@@ -571,60 +604,45 @@
         const firstDay = new Date(year, month, 1).getDay();
         const daysInMonth = new Date(year, month + 1, 0).getDate();
         const daysInPrev = new Date(year, month, 0).getDate();
-        const today = new Date();
-        const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
-
-        // Task dates for dots
+        const todayStr = fmtDate(new Date());
         const taskDates = new Set(tasks.filter(t => !t.archived).map(t => t.date));
 
         let html = '';
-        // Previous month days
-        for (let i = firstDay - 1; i >= 0; i--) {
-            html += `<div class="cal-cell other-month">${daysInPrev - i}</div>`;
-        }
-        // Current month days
+        for (let i = firstDay - 1; i >= 0; i--) html += `<div class="cal-cell other-month">${daysInPrev - i}</div>`;
         for (let d = 1; d <= daysInMonth; d++) {
             const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
             const isToday = dateStr === todayStr;
-            const hasTask = taskDates.has(dateStr);
             html += `<div class="cal-cell ${isToday ? 'today' : ''}" onclick="selectCalDate('${dateStr}')" style="position:relative;">
-                ${d}${hasTask && !isToday ? '<div class="dot"></div>' : ''}
+                ${d}${taskDates.has(dateStr) && !isToday ? '<div class="dot"></div>' : ''}
             </div>`;
         }
-        // Next month days
-        const totalCells = firstDay + daysInMonth;
-        const remaining = (7 - totalCells % 7) % 7;
-        for (let i = 1; i <= remaining; i++) {
-            html += `<div class="cal-cell other-month">${i}</div>`;
-        }
+        const remaining = (7 - (firstDay + daysInMonth) % 7) % 7;
+        for (let i = 1; i <= remaining; i++) html += `<div class="cal-cell other-month">${i}</div>`;
         document.getElementById('cal-grid').innerHTML = html;
     }
 
-    function changeMonth(delta) {
-        currentMonth.setMonth(currentMonth.getMonth() + delta);
-        renderCalendar();
-    }
+    function changeMonth(delta) { currentMonth.setMonth(currentMonth.getMonth() + delta); renderCalendar(); }
 
-    function selectCalDate(dateStr) {
-        selectedDate = dateStr;
+    function selectCalDate(dateStr) { selectedDate = dateStr; renderTaskList(); }
+
+    function goToToday() {
+        currentMonth = new Date();
+        selectedDate = fmtDate(new Date());
+        renderCalendar();
         renderTaskList();
+        showToast('已回到今天');
     }
 
     // ===== TASK LIST =====
     function renderTaskList() {
-        const dateStr = selectedDate || getTodayStr();
+        const dateStr = selectedDate || fmtDate(new Date());
         const dayTasks = tasks.filter(t => t.date === dateStr && !t.archived);
         const container = document.getElementById('task-list');
         const emptyState = document.getElementById('empty-state');
 
-        if (dayTasks.length === 0) {
-            container.innerHTML = '';
-            emptyState.classList.remove('hidden');
-            return;
-        }
+        if (dayTasks.length === 0) { container.innerHTML = ''; emptyState.classList.remove('hidden'); return; }
         emptyState.classList.add('hidden');
 
-        // Group by time period
         const morning = dayTasks.filter(t => t.time && parseInt(t.time) < 12).sort((a,b) => a.time.localeCompare(b.time));
         const afternoon = dayTasks.filter(t => t.time && parseInt(t.time) >= 12 && parseInt(t.time) < 18).sort((a,b) => a.time.localeCompare(b.time));
         const evening = dayTasks.filter(t => t.time && parseInt(t.time) >= 18).sort((a,b) => a.time.localeCompare(b.time));
@@ -635,7 +653,6 @@
         if (afternoon.length) html += renderTimeGroup('下午', 'sun', afternoon);
         if (evening.length) html += renderTimeGroup('晚上', 'moon', evening);
         if (noTime.length) html += renderTimeGroup('全天', 'circle', noTime);
-
         container.innerHTML = html;
         lucide.createIcons();
     }
@@ -661,6 +678,7 @@
                             ${t.time ? `<span style="font-size: 12px; color: var(--color-text-tertiary);">${t.time}</span>` : ''}
                             <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: ${tagBgs[t.tag]}; color: ${tagColors[t.tag]}; font-weight: 500;">${tagLabels[t.tag] || '其他'}</span>
                             <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: ${priorityBgs[t.priority]}; color: ${priorityColors[t.priority]}; font-weight: 600;">${priorityLabels[t.priority]}</span>
+                            ${t.assignee ? `<span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: rgba(255,255,255,0.06); color: var(--color-text-secondary); font-weight: 500;">${t.assignee}</span>` : ''}
                             ${t.reminder ? '<span class="reminder-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>提醒</span>' : ''}
                         </div>
                     </div>
@@ -679,16 +697,12 @@
         `;
     }
 
-    function getTodayStr() {
-        const d = new Date();
-        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    }
-
     function renderHome() {
-        selectedDate = getTodayStr();
+        selectedDate = fmtDate(new Date());
         currentMonth = new Date();
         renderCalendar();
         renderTaskList();
+        applyMobileLock();
     }
 
     // ===== ADD / EDIT TASK =====
@@ -696,8 +710,9 @@
         editingId = null;
         document.getElementById('form-title').textContent = '新建待办';
         document.getElementById('input-title').value = '';
-        document.getElementById('input-date').value = selectedDate || getTodayStr();
+        document.getElementById('input-date').value = selectedDate || fmtDate(new Date());
         document.getElementById('input-time').value = '';
+        document.getElementById('input-assignee').value = '';
         formTag = 'work'; formPriority = 'medium'; formReminder = false;
         updateFormUI();
         document.getElementById('overlay-add').classList.add('active');
@@ -711,18 +726,15 @@
         document.getElementById('input-title').value = t.title;
         document.getElementById('input-date').value = t.date;
         document.getElementById('input-time').value = t.time || '';
+        document.getElementById('input-assignee').value = t.assignee || '';
         formTag = t.tag; formPriority = t.priority; formReminder = t.reminder;
         updateFormUI();
         document.getElementById('overlay-add').classList.add('active');
     }
 
-    function closeAddTask() {
-        document.getElementById('overlay-add').classList.remove('active');
-        editingId = null;
-    }
+    function closeAddTask() { document.getElementById('overlay-add').classList.remove('active'); editingId = null; }
 
     function updateFormUI() {
-        // Tags
         document.querySelectorAll('#tag-selector .tag-pill').forEach(el => {
             const tag = el.dataset.tag;
             if (tag === formTag) {
@@ -736,18 +748,13 @@
                 el.style.background = bgs[tag]; el.style.color = colors[tag]; el.style.borderColor = 'transparent';
             }
         });
-        // Priority
         const pColors = { high: 'var(--priority-high)', medium: 'var(--priority-medium)', low: 'var(--priority-low)' };
         const pBgs = { high: 'var(--state-error-light)', medium: 'var(--state-warning-light)', low: 'var(--state-info-light)' };
         document.querySelectorAll('.priority-btn').forEach(el => {
             const p = el.dataset.priority;
-            if (p === formPriority) {
-                el.style.background = pBgs[p]; el.style.color = pColors[p]; el.style.borderColor = pColors[p];
-            } else {
-                el.style.background = 'var(--color-bg-input)'; el.style.color = 'var(--color-text-secondary)'; el.style.borderColor = 'var(--color-border-default)';
-            }
+            if (p === formPriority) { el.style.background = pBgs[p]; el.style.color = pColors[p]; el.style.borderColor = pColors[p]; }
+            else { el.style.background = 'var(--color-bg-input)'; el.style.color = 'var(--color-text-secondary)'; el.style.borderColor = 'var(--color-border-default)'; }
         });
-        // Reminder
         const toggle = document.getElementById('toggle-reminder');
         if (formReminder) toggle.classList.add('active'); else toggle.classList.remove('active');
     }
@@ -761,31 +768,143 @@
         if (!title) { showToast('请输入任务标题'); return; }
         const date = document.getElementById('input-date').value;
         const time = document.getElementById('input-time').value;
+        const assignee = document.getElementById('input-assignee').value.trim();
 
         if (editingId) {
             const t = tasks.find(x => x.id === editingId);
-            if (t) { t.title = title; t.date = date; t.time = time; t.tag = formTag; t.priority = formPriority; t.reminder = formReminder; }
+            if (t) { t.title = title; t.date = date; t.time = time; t.tag = formTag; t.priority = formPriority; t.reminder = formReminder; t.assignee = assignee; }
             showToast('任务已更新');
         } else {
-            tasks.push({ id: genId(), title, date, time, tag: formTag, priority: formPriority, reminder: formReminder, completed: false, archived: false });
+            tasks.push({ id: genId(), title, date, time, tag: formTag, priority: formPriority, reminder: formReminder, completed: false, archived: false, assignee });
             showToast('任务已创建');
         }
-        saveData();
-        closeAddTask();
-        renderHome();
+        saveData(); closeAddTask(); renderHome();
     }
 
     function toggleComplete(id) {
         const t = tasks.find(x => x.id === id);
         if (!t) return;
         t.completed = !t.completed;
-        if (t.completed) {
-            // Auto-archive completed tasks after a short visual delay
-            setTimeout(() => { t.archived = true; saveData(); renderTaskList(); }, 300);
-        }
-        saveData();
-        renderTaskList();
+        if (t.completed) setTimeout(() => { t.archived = true; saveData(); renderTaskList(); }, 300);
+        saveData(); renderTaskList();
         if (t.completed) showToast('完成！已自动归档');
+    }
+
+    // ===== EXPORT CSV =====
+    function exportCSV() {
+        if (isMobileOrStandalone()) return;
+        const priorityLabels = { high: '高', medium: '中', low: '低' };
+        const tagLabels = { work: '工作', personal: '个人', health: '健康', study: '学习' };
+        const BOM = '\uFEFF';
+        let csv = BOM + '任务标题,日期,时间,标签,优先级,负责人,提醒\n';
+        tasks.filter(t => !t.archived).forEach(t => {
+            const title = `"${(t.title || '').replace(/"/g, '""')}"`;
+            const date = t.date || '';
+            const time = t.time || '';
+            const tag = tagLabels[t.tag] || t.tag || '';
+            const priority = priorityLabels[t.priority] || t.priority || '';
+            const assignee = `"${(t.assignee || '').replace(/"/g, '""')}"`;
+            const reminder = t.reminder ? '是' : '否';
+            csv += `${title},${date},${time},${tag},${priority},${assignee},${reminder}\n`;
+        });
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        const d = new Date();
+        a.download = `待办清单_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showToast('日程已导出');
+    }
+
+    // ===== IMPORT CSV =====
+    function importCSV(event) {
+        if (isMobileOrStandalone()) return;
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const text = e.target.result.replace(/^\uFEFF/, '');
+                const lines = text.split('\n').map(l => l.trim()).filter(l => l);
+                if (lines.length < 2) { showToast('CSV 文件为空'); return; }
+
+                const tagMap = { '工作': 'work', '个人': 'personal', '健康': 'health', '学习': 'study' };
+                const priorityMap = { '高': 'high', '中': 'medium', '低': 'low' };
+                const imported = [];
+                // Skip header
+                for (let i = 1; i < lines.length; i++) {
+                    const cols = parseCSVLine(lines[i]);
+                    if (cols.length < 2) continue;
+                    const title = cols[0] || '';
+                    const date = cols[1] || fmtDate(new Date());
+                    const time = cols[2] || '';
+                    const tag = tagMap[cols[3]] || 'work';
+                    const priority = priorityMap[cols[4]] || 'medium';
+                    const assignee = cols[5] || '';
+                    const reminder = cols[6] === '是';
+                    if (title) {
+                        imported.push({ id: genId(), title, date, time, tag, priority, reminder, completed: false, archived: false, assignee });
+                    }
+                }
+
+                if (imported.length === 0) { showToast('未找到有效任务'); return; }
+                tasks = imported;
+                saveData();
+                renderHome();
+                showToast(`已导入 ${imported.length} 条任务`);
+            } catch (err) {
+                showToast('导入失败，请检查 CSV 格式');
+                console.error('Import error:', err);
+            }
+            event.target.value = '';
+        };
+        reader.readAsText(file, 'UTF-8');
+    }
+
+    function parseCSVLine(line) {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        for (let i = 0; i < line.length; i++) {
+            const ch = line[i];
+            if (inQuotes) {
+                if (ch === '"' && line[i+1] === '"') { current += '"'; i++; }
+                else if (ch === '"') { inQuotes = false; }
+                else { current += ch; }
+            } else {
+                if (ch === '"') { inQuotes = true; }
+                else if (ch === ',') { result.push(current.trim()); current = ''; }
+                else { current += ch; }
+            }
+        }
+        result.push(current.trim());
+        return result;
+    }
+
+    // ===== CLEAR ALL =====
+    let confirmCallback = null;
+    function confirmClearAll() {
+        if (isMobileOrStandalone()) return;
+        document.getElementById('confirm-msg').textContent = '确定要清空所有待办事项吗？此操作不可撤销。';
+        confirmCallback = doClearAll;
+        document.getElementById('confirm-overlay').classList.add('active');
+    }
+
+    function doClearAll() {
+        tasks = [];
+        saveData();
+        renderHome();
+        closeConfirm();
+        showToast('所有待办已清空');
+    }
+
+    function closeConfirm() {
+        document.getElementById('confirm-overlay').classList.remove('active');
+        confirmCallback = null;
     }
 
     // ===== ARCHIVED =====
@@ -801,7 +920,7 @@
                     <div class="task-checkbox checked"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
                     <div class="flex-1 min-w-0">
                         <p class="line-through" style="color:var(--color-text-tertiary);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.title}</p>
-                        <span style="font-size:12px;color:var(--color-text-tertiary);">${t.date}${t.time ? ' ' + t.time : ''}</span>
+                        <span style="font-size:12px;color:var(--color-text-tertiary);">${t.date}${t.time ? ' ' + t.time : ''}${t.assignee ? ' · ' + t.assignee : ''}</span>
                     </div>
                     <button onclick="unarchive('${t.id}')" style="color:var(--color-text-tertiary);padding:4px;" title="恢复">
                         <i data-lucide="rotate-ccw" style="width:14px;height:14px;"></i>
@@ -829,10 +948,8 @@
         const total = active.length;
         const done = completed.length;
         const pct = total > 0 ? Math.round(done / total * 100) : 0;
-
         document.getElementById('stat-percent').textContent = pct + '%';
         document.getElementById('stat-summary').textContent = statTab === 'week' ? `本周完成 ${done}/${total} 项` : `本月完成 ${done}/${total} 项`;
-
         renderRingChart(pct);
         renderBarChart();
         renderCategoryStats();
@@ -843,72 +960,33 @@
         if (ringChart) ringChart.destroy();
         ringChart = new Chart(ctx, {
             type: 'doughnut',
-            data: {
-                datasets: [{
-                    data: [pct, 100 - pct],
-                    backgroundColor: ['#6C5CE7', '#2A2A4A'],
-                    borderWidth: 0,
-                    cutout: '78%'
-                }]
-            },
-            options: {
-                responsive: false,
-                plugins: { legend: { display: false }, tooltip: { enabled: false } },
-                animation: { animateRotate: true, duration: 800 }
-            }
+            data: { datasets: [{ data: [pct, 100 - pct], backgroundColor: ['#6C5CE7', '#2A2A4A'], borderWidth: 0, cutout: '78%' }] },
+            options: { responsive: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, animation: { animateRotate: true, duration: 800 } }
         });
     }
 
     function renderBarChart() {
         const ctx = document.getElementById('bar-chart').getContext('2d');
         if (barChart) barChart.destroy();
-
         let labels, data;
         if (statTab === 'week') {
-            const dayNames = ['日','一','二','三','四','五','六'];
-            labels = dayNames;
+            labels = ['日','一','二','三','四','五','六'];
             data = Array(7).fill(0);
-            const today = new Date();
-            const weekStart = new Date(today);
-            weekStart.setDate(today.getDate() - today.getDay());
-            tasks.filter(t => !t.archived).forEach(t => {
-                const d = new Date(t.date);
-                const diff = Math.floor((d - weekStart) / 86400000);
-                if (diff >= 0 && diff < 7 && t.completed) data[diff]++;
-            });
+            const today = new Date(); const weekStart = new Date(today); weekStart.setDate(today.getDate() - today.getDay());
+            tasks.filter(t => !t.archived).forEach(t => { const d = new Date(t.date); const diff = Math.floor((d - weekStart) / 86400000); if (diff >= 0 && diff < 7 && t.completed) data[diff]++; });
         } else {
             labels = Array.from({length: 30}, (_, i) => `${i+1}`);
             data = Array(30).fill(0);
             const now = new Date();
-            tasks.filter(t => !t.archived).forEach(t => {
-                const d = new Date(t.date);
-                if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
-                    const day = d.getDate() - 1;
-                    if (day >= 0 && day < 30 && t.completed) data[day]++;
-                }
-            });
+            tasks.filter(t => !t.archived).forEach(t => { const d = new Date(t.date); if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) { const day = d.getDate() - 1; if (day >= 0 && day < 30 && t.completed) data[day]++; } });
         }
-
         barChart = new Chart(ctx, {
             type: 'bar',
-            data: {
-                labels,
-                datasets: [{
-                    data,
-                    backgroundColor: 'rgba(108, 92, 231, 0.6)',
-                    borderRadius: 4,
-                    borderSkipped: false,
-                    barPercentage: statTab === 'week' ? 0.5 : 0.7
-                }]
-            },
+            data: { labels, datasets: [{ data, backgroundColor: 'rgba(108, 92, 231, 0.6)', borderRadius: 4, borderSkipped: false, barPercentage: statTab === 'week' ? 0.5 : 0.7 }] },
             options: {
-                responsive: true,
-                maintainAspectRatio: false,
+                responsive: true, maintainAspectRatio: false,
                 plugins: { legend: { display: false }, tooltip: { backgroundColor: '#2A2A4A', titleColor: '#F0F0F5', bodyColor: '#A0A0B8', borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1, cornerRadius: 8, padding: 10 } },
-                scales: {
-                    x: { grid: { display: false }, ticks: { color: '#6B6B85', font: { size: 10 }, maxRotation: 0 } },
-                    y: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#6B6B85', font: { size: 10 }, stepSize: 1 }, beginAtZero: true }
-                }
+                scales: { x: { grid: { display: false }, ticks: { color: '#6B6B85', font: { size: 10 }, maxRotation: 0 } }, y: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#6B6B85', font: { size: 10 }, stepSize: 1 }, beginAtZero: true } }
             }
         });
     }
@@ -918,29 +996,19 @@
         const tagIcons = { work: 'briefcase', personal: 'user', health: 'heart', study: 'book-open' };
         const tagColors = { work: 'var(--tag-work)', personal: 'var(--tag-personal)', health: 'var(--tag-health)', study: 'var(--tag-study)' };
         const tagBgs = { work: 'var(--color-primary-light)', personal: 'var(--state-info-light)', health: 'var(--state-success-light)', study: 'var(--state-warning-light)' };
-
         const container = document.getElementById('category-stats');
         let html = '';
         for (const [tag, label] of Object.entries(tagLabels)) {
             const catTasks = tasks.filter(t => t.tag === tag && !t.archived);
             const catDone = catTasks.filter(t => t.completed).length;
             const pct = catTasks.length > 0 ? Math.round(catDone / catTasks.length * 100) : 0;
-            html += `
-                <div class="flex items-center gap-3 mb-4">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-xl" style="background: ${tagBgs[tag]};">
-                        <i data-lucide="${tagIcons[tag]}" style="width:18px;height:18px;color:${tagColors[tag]}"></i>
-                    </div>
-                    <div class="flex-1">
-                        <div class="flex items-center justify-between mb-1">
-                            <span style="font-size: 14px; font-weight: 500;">${label}</span>
-                            <span style="font-size: 13px; color: var(--color-text-secondary);">${pct}%</span>
-                        </div>
-                        <div class="progress-bar">
-                            <div class="progress-fill" style="width: ${pct}%; background: ${tagColors[tag]};"></div>
-                        </div>
-                    </div>
+            html += `<div class="flex items-center gap-3 mb-4">
+                <div class="flex h-10 w-10 items-center justify-center rounded-xl" style="background: ${tagBgs[tag]};"><i data-lucide="${tagIcons[tag]}" style="width:18px;height:18px;color:${tagColors[tag]}"></i></div>
+                <div class="flex-1">
+                    <div class="flex items-center justify-between mb-1"><span style="font-size: 14px; font-weight: 500;">${label}</span><span style="font-size: 13px; color: var(--color-text-secondary);">${pct}%</span></div>
+                    <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%; background: ${tagColors[tag]};"></div></div>
                 </div>
-            `;
+            </div>`;
         }
         container.innerHTML = html;
         lucide.createIcons();
@@ -950,21 +1018,15 @@
         statTab = tab;
         const weekBtn = document.getElementById('tab-week');
         const monthBtn = document.getElementById('tab-month');
-        if (tab === 'week') {
-            weekBtn.style.background = 'var(--color-primary)'; weekBtn.style.color = '#fff';
-            monthBtn.style.background = 'transparent'; monthBtn.style.color = 'var(--color-text-secondary)';
-        } else {
-            monthBtn.style.background = 'var(--color-primary)'; monthBtn.style.color = '#fff';
-            weekBtn.style.background = 'transparent'; weekBtn.style.color = 'var(--color-text-secondary)';
-        }
+        if (tab === 'week') { weekBtn.style.background = 'var(--color-primary)'; weekBtn.style.color = '#fff'; monthBtn.style.background = 'transparent'; monthBtn.style.color = 'var(--color-text-secondary)'; }
+        else { monthBtn.style.background = 'var(--color-primary)'; monthBtn.style.color = '#fff'; weekBtn.style.background = 'transparent'; weekBtn.style.color = 'var(--color-text-secondary)'; }
         renderStats();
     }
 
     // ===== TOAST =====
     function showToast(msg) {
         const el = document.getElementById('toast');
-        el.textContent = msg;
-        el.classList.add('show');
+        el.textContent = msg; el.classList.add('show');
         setTimeout(() => el.classList.remove('show'), 2000);
     }
 
@@ -974,6 +1036,8 @@
         initFirebase();
         renderHome();
         lucide.createIcons();
+        // Bind confirm ok button
+        document.getElementById('confirm-ok-btn').addEventListener('click', () => { if (confirmCallback) confirmCallback(); });
     });
     </script>
 </body>
