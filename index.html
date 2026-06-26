@@ -1,0 +1,980 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="待办清单">
+    <meta name="theme-color" content="#1A1A2E">
+    <link rel="manifest" href="manifest.json">
+    <title>待办清单</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.3.1/dist/index.global.js"></script>
+    <script src="https://unpkg.com/lucide@1.8.0/dist/umd/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+    <!-- Firebase SDK (compat version for simplicity) -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+      }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+        :root {
+            --color-primary: #6C5CE7;
+            --color-primary-hover: #7D6FF0;
+            --color-primary-active: #5A4BD6;
+            --color-primary-light: rgba(108, 92, 231, 0.12);
+            --color-primary-lighter: rgba(108, 92, 231, 0.06);
+            --color-bg-base: #1A1A2E;
+            --color-bg-surface: #222240;
+            --color-bg-elevated: #2A2A4A;
+            --color-bg-overlay: rgba(0, 0, 0, 0.6);
+            --color-bg-input: #2A2A4A;
+            --color-text-primary: #F0F0F5;
+            --color-text-secondary: #A0A0B8;
+            --color-text-tertiary: #6B6B85;
+            --color-text-inverse: #1A1A2E;
+            --color-text-brand: #6C5CE7;
+            --color-border-default: rgba(255, 255, 255, 0.08);
+            --color-border-subtle: rgba(255, 255, 255, 0.04);
+            --color-border-strong: rgba(255, 255, 255, 0.15);
+            --state-success: #00D68F;
+            --state-success-light: rgba(0, 214, 143, 0.12);
+            --state-warning: #FFAA00;
+            --state-warning-light: rgba(255, 170, 0, 0.12);
+            --state-error: #FF6B6B;
+            --state-error-light: rgba(255, 107, 107, 0.12);
+            --state-info: #4ECDC4;
+            --state-info-light: rgba(78, 205, 196, 0.12);
+            --priority-high: #FF6B6B;
+            --priority-medium: #FFAA00;
+            --priority-low: #4ECDC4;
+            --tag-work: #6C5CE7;
+            --tag-personal: #4ECDC4;
+            --tag-health: #00D68F;
+            --tag-study: #FFAA00;
+            --tag-urgent: #FF6B6B;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-full: 9999px;
+            --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.15);
+            --shadow-elevated: 0 4px 16px rgba(0, 0, 0, 0.25);
+            --transition-fast: 150ms ease;
+            --transition-normal: 250ms ease;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'PingFang SC', 'Noto Sans SC', sans-serif;
+            background: var(--color-bg-base);
+            color: var(--color-text-primary);
+            min-height: 100vh;
+            min-height: 100dvh;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+
+        /* Page transitions */
+        .page { display: none; min-height: 100vh; min-height: 100dvh; }
+        .page.active { display: block; animation: fadeIn 200ms ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes scaleIn { from { transform: scale(0.95); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        /* Scrollbar */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        /* Safe areas for iPhone */
+        .safe-top { padding-top: env(safe-area-inset-top, 44px); }
+        .safe-bottom { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 16px); }
+
+        /* Toggle switch */
+        .toggle-switch {
+            width: 48px; height: 28px; border-radius: 14px;
+            background: var(--color-bg-elevated); border: 1px solid var(--color-border-default);
+            position: relative; cursor: pointer; transition: all 250ms ease; flex-shrink: 0;
+        }
+        .toggle-switch.active { background: var(--color-primary); border-color: var(--color-primary); }
+        .toggle-switch::after {
+            content: ''; position: absolute; width: 22px; height: 22px; border-radius: 50%;
+            background: #fff; top: 2px; left: 2px; transition: transform 250ms ease;
+        }
+        .toggle-switch.active::after { transform: translateX(20px); }
+
+        /* Checkbox */
+        .task-checkbox {
+            width: 22px; height: 22px; border-radius: 6px;
+            border: 2px solid var(--color-border-strong); background: transparent;
+            cursor: pointer; transition: all 150ms ease; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .task-checkbox.checked { background: var(--color-primary); border-color: var(--color-primary); }
+        .task-checkbox.checked svg { display: block; }
+        .task-checkbox svg { display: none; }
+
+        /* Card styles */
+        .card {
+            background: var(--color-bg-surface);
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border-subtle);
+            box-shadow: var(--shadow-card);
+            transition: transform var(--transition-fast);
+        }
+        .card:active { transform: scale(0.985); }
+
+        /* Priority indicator */
+        .priority-bar {
+            width: 3px; border-radius: 2px; align-self: stretch; flex-shrink: 0;
+        }
+
+        /* Input styles */
+        .input-field {
+            background: var(--color-bg-input); border: 1px solid var(--color-border-default);
+            border-radius: var(--radius-md); color: var(--color-text-primary);
+            font-size: 15px; padding: 12px 16px; width: 100%; outline: none;
+            transition: border-color var(--transition-fast);
+            font-family: inherit;
+        }
+        .input-field:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px var(--color-primary-light); }
+        .input-field::placeholder { color: var(--color-text-tertiary); }
+
+        /* Pill tags */
+        .tag-pill {
+            display: inline-flex; align-items: center; padding: 6px 14px;
+            border-radius: var(--radius-full); font-size: 13px; font-weight: 500;
+            cursor: pointer; transition: all var(--transition-normal);
+            white-space: nowrap; border: 1px solid transparent;
+        }
+        .tag-pill.selected { color: #fff; border-color: transparent; }
+
+        /* Progress bar */
+        .progress-bar { height: 6px; border-radius: 3px; background: var(--color-bg-elevated); overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 3px; transition: width 600ms cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* Primary button */
+        .btn-primary {
+            background: var(--color-primary); color: #fff; border: none;
+            border-radius: var(--radius-lg); font-weight: 600; font-size: 15px;
+            padding: 16px 24px; width: 100%; cursor: pointer;
+            box-shadow: 0 4px 16px rgba(108, 92, 231, 0.35);
+            transition: all var(--transition-normal); font-family: inherit;
+        }
+        .btn-primary:hover { background: var(--color-primary-hover); box-shadow: 0 6px 20px rgba(108, 92, 231, 0.45); }
+        .btn-primary:active { transform: scale(0.98); background: var(--color-primary-active); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        /* Overlay */
+        .overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+            z-index: 100; display: none; align-items: flex-end; justify-content: center;
+        }
+        .overlay.active { display: flex; }
+        .overlay-panel {
+            background: var(--color-bg-base); border-radius: 20px 20px 0 0;
+            width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto;
+            padding: 24px; animation: slideUp 300ms ease;
+        }
+
+        /* Calendar grid */
+        .cal-cell {
+            width: 40px; height: 40px; display: flex; align-items: center;
+            justify-content: center; border-radius: 10px; font-size: 14px;
+            font-weight: 500; cursor: pointer; transition: all 150ms ease;
+        }
+        .cal-cell.today { background: var(--color-primary); color: #fff; font-weight: 700; }
+        .cal-cell.selected { background: var(--color-primary-light); color: var(--color-primary); }
+        .cal-cell.other-month { color: var(--color-text-tertiary); opacity: 0.4; }
+        .cal-cell:hover:not(.today) { background: var(--color-primary-lighter); }
+        .cal-cell .dot {
+            width: 4px; height: 4px; border-radius: 50%; background: var(--color-primary);
+            position: absolute; bottom: 4px;
+        }
+
+        /* Stat card */
+        .stat-card {
+            background: var(--color-bg-surface); border-radius: var(--radius-lg);
+            border: 1px solid var(--color-border-subtle); padding: 20px;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed; top: 60px; left: 50%; transform: translateX(-50%) translateY(-20px);
+            background: var(--color-bg-elevated); color: var(--color-text-primary);
+            padding: 12px 24px; border-radius: var(--radius-lg); font-size: 14px;
+            box-shadow: var(--shadow-elevated); z-index: 200; opacity: 0;
+            transition: all 300ms ease; pointer-events: none; font-weight: 500;
+        }
+        .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        /* Archive item */
+        .archive-item {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px; cursor: pointer; border-radius: var(--radius-md);
+            transition: background 150ms ease;
+        }
+        .archive-item:hover { background: var(--color-primary-lighter); }
+
+        /* Reminder badge */
+        .reminder-badge {
+            display: inline-flex; align-items: center; gap: 4px;
+            padding: 3px 10px; border-radius: var(--radius-full);
+            background: var(--color-primary-light); color: var(--color-primary);
+            font-size: 11px; font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <!-- Toast notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- ===================== PAGE 1: Calendar Home ===================== -->
+    <div id="page-home" class="page active">
+        <div class="safe-top" style="background: var(--color-bg-base);">
+            <!-- Status bar + nav -->
+            <div class="flex items-center justify-between px-4 pt-2 pb-1" style="height: 44px;">
+                <div class="flex items-center gap-2">
+                    <span style="font-size: 20px; font-weight: 700; letter-spacing: -0.02em;">我的待办</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="sync-indicator" style="width:6px;height:6px;border-radius:50%;background:var(--state-success);opacity:0.4;" title="本地模式"></span>
+                    <button onclick="showPage('page-stats')" class="flex h-9 w-9 items-center justify-center rounded-xl" style="background: var(--color-bg-elevated); border: 1px solid var(--color-border-default);">
+                        <i data-lucide="bar-chart-3" style="width:16px;height:16px;color:var(--color-text-secondary)"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div style="padding: 0 16px 100px;">
+            <!-- Calendar Section -->
+            <div class="card" style="padding: 20px; margin-bottom: 20px;">
+                <!-- Month header -->
+                <div class="flex items-center justify-between mb-4">
+                    <button onclick="changeMonth(-1)" class="flex h-8 w-8 items-center justify-center rounded-lg" style="border: 1px solid var(--color-border-default);">
+                        <i data-lucide="chevron-left" style="width:16px;height:16px;color:var(--color-text-secondary)"></i>
+                    </button>
+                    <span id="cal-month-label" style="font-size: 17px; font-weight: 600;"></span>
+                    <div class="flex items-center gap-2">
+                        <button onclick="changeMonth(1)" class="flex h-8 w-8 items-center justify-center rounded-lg" style="border: 1px solid var(--color-border-default);">
+                            <i data-lucide="chevron-right" style="width:16px;height:16px;color:var(--color-text-secondary)"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Week day headers -->
+                <div class="grid grid-cols-7 gap-1 mb-2" style="text-align: center;">
+                    <span style="font-size: 11px; color: var(--color-text-tertiary); font-weight: 600;">日</span>
+                    <span style="font-size: 11px; color: var(--color-text-tertiary); font-weight: 600;">一</span>
+                    <span style="font-size: 11px; color: var(--color-text-tertiary); font-weight: 600;">二</span>
+                    <span style="font-size: 11px; color: var(--color-text-tertiary); font-weight: 600;">三</span>
+                    <span style="font-size: 11px; color: var(--color-text-tertiary); font-weight: 600;">四</span>
+                    <span style="font-size: 11px; color: var(--color-text-tertiary); font-weight: 600;">五</span>
+                    <span style="font-size: 11px; color: var(--color-text-tertiary); font-weight: 600;">六</span>
+                </div>
+                <!-- Calendar grid -->
+                <div id="cal-grid" class="grid grid-cols-7 gap-1" style="justify-items: center;"></div>
+            </div>
+
+            <!-- Task list -->
+            <div id="task-list"></div>
+
+            <!-- Empty state -->
+            <div id="empty-state" class="hidden" style="text-align: center; padding: 48px 20px;">
+                <div style="font-size: 48px; margin-bottom: 12px; opacity: 0.3;">✓</div>
+                <p style="color: var(--color-text-secondary); font-size: 15px;">今天没有待办事项</p>
+                <p style="color: var(--color-text-tertiary); font-size: 13px; margin-top: 4px;">点击下方按钮新建一个吧</p>
+            </div>
+        </div>
+
+        <!-- Bottom CTA -->
+        <div class="safe-bottom" style="position: fixed; bottom: 0; left: 0; right: 0; z-index: 40; background: linear-gradient(to top, var(--color-bg-base) 60%, transparent); padding: 8px 16px 0;">
+            <button onclick="openAddTask()" class="btn-primary flex items-center justify-center gap-2">
+                <i data-lucide="plus" style="width:20px;height:20px;"></i>
+                <span>新建待办</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- ===================== PAGE 2: Statistics ===================== -->
+    <div id="page-stats" class="page">
+        <div class="safe-top" style="background: var(--color-bg-base);">
+            <div class="flex items-center px-4 pt-2 pb-1" style="height: 44px;">
+                <button onclick="showPage('page-home')" class="flex h-9 w-9 items-center justify-center rounded-xl" style="border: 1px solid var(--color-border-default);">
+                    <i data-lucide="chevron-left" style="width:16px;height:16px;color:var(--color-text-primary)"></i>
+                </button>
+                <span class="flex-1 text-center" style="font-size: 17px; font-weight: 600;">数据统计</span>
+                <div style="width: 36px;"></div>
+            </div>
+        </div>
+
+        <div style="padding: 0 16px 40px;">
+            <!-- Completion ring -->
+            <div class="stat-card" style="text-align: center; margin-bottom: 16px;">
+                <div style="position: relative; width: 140px; height: 140px; margin: 0 auto 12px;">
+                    <canvas id="ring-chart" width="140" height="140"></canvas>
+                    <div style="position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                        <span id="stat-percent" style="font-size: 32px; font-weight: 700; letter-spacing: -0.02em;"></span>
+                        <span style="font-size: 12px; color: var(--color-text-tertiary);">完成率</span>
+                    </div>
+                </div>
+                <p id="stat-summary" style="font-size: 14px; color: var(--color-text-secondary);"></p>
+            </div>
+
+            <!-- Week/Month toggle -->
+            <div class="flex items-center gap-2 mb-4 p-1" style="background: var(--color-bg-surface); border-radius: var(--radius-md); display: inline-flex;">
+                <button onclick="switchStatTab('week')" id="tab-week" class="flex-1 px-4 py-2 rounded-lg text-center" style="font-size: 13px; font-weight: 600; transition: all 200ms;">本周</button>
+                <button onclick="switchStatTab('month')" id="tab-month" class="flex-1 px-4 py-2 rounded-lg text-center" style="font-size: 13px; font-weight: 600; transition: all 200ms;">本月</button>
+            </div>
+
+            <!-- Bar chart -->
+            <div class="card" style="padding: 16px; margin-bottom: 16px;">
+                <canvas id="bar-chart" height="180"></canvas>
+            </div>
+
+            <!-- Category completion -->
+            <div class="stat-card mb-4">
+                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">分类完成情况</h3>
+                <div id="category-stats"></div>
+            </div>
+
+            <!-- Archived -->
+            <div class="archive-item" onclick="showArchived()">
+                <div class="flex items-center gap-3">
+                    <i data-lucide="archive" style="width:18px;height:18px;color:var(--color-text-secondary)"></i>
+                    <span style="font-size: 15px;">已归档任务</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span id="archived-count" style="font-size: 13px; color: var(--color-text-tertiary);"></span>
+                    <i data-lucide="chevron-right" style="width:16px;height:16px;color:var(--color-text-tertiary)"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================== ADD/EDIT TASK OVERLAY ===================== -->
+    <div id="overlay-add" class="overlay" onclick="event.target===this && closeAddTask()">
+        <div class="overlay-panel no-scrollbar">
+            <div class="flex items-center justify-between mb-6">
+                <button onclick="closeAddTask()" class="flex h-9 w-9 items-center justify-center rounded-xl" style="border: 1px solid var(--color-border-default);">
+                    <i data-lucide="x" style="width:16px;height:16px;color:var(--color-text-primary)"></i>
+                </button>
+                <span id="form-title" style="font-size: 17px; font-weight: 600;">新建待办</span>
+                <div style="width: 36px;"></div>
+            </div>
+
+            <!-- Title -->
+            <div class="mb-5">
+                <label style="font-size: 13px; color: var(--color-text-secondary); font-weight: 500; display: block; margin-bottom: 8px;">任务标题</label>
+                <input type="text" id="input-title" class="input-field" placeholder="输入任务标题..." maxlength="50">
+            </div>
+
+            <!-- Date -->
+            <div class="mb-5">
+                <label style="font-size: 13px; color: var(--color-text-secondary); font-weight: 500; display: block; margin-bottom: 8px;">日期</label>
+                <input type="date" id="input-date" class="input-field">
+            </div>
+
+            <!-- Time -->
+            <div class="mb-5">
+                <label style="font-size: 13px; color: var(--color-text-secondary); font-weight: 500; display: block; margin-bottom: 8px;">时间</label>
+                <input type="time" id="input-time" class="input-field">
+            </div>
+
+            <!-- Tags -->
+            <div class="mb-5">
+                <label style="font-size: 13px; color: var(--color-text-secondary); font-weight: 500; display: block; margin-bottom: 8px;">标签</label>
+                <div class="flex gap-2 flex-wrap" id="tag-selector">
+                    <span class="tag-pill" data-tag="work" onclick="selectTag('work')" style="background: var(--color-primary-light); color: var(--tag-work);">工作</span>
+                    <span class="tag-pill" data-tag="personal" onclick="selectTag('personal')" style="background: var(--state-info-light); color: var(--tag-personal);">个人</span>
+                    <span class="tag-pill" data-tag="health" onclick="selectTag('health')" style="background: var(--state-success-light); color: var(--tag-health);">健康</span>
+                    <span class="tag-pill" data-tag="study" onclick="selectTag('study')" style="background: var(--state-warning-light); color: var(--tag-study);">学习</span>
+                </div>
+            </div>
+
+            <!-- Priority -->
+            <div class="mb-5">
+                <label style="font-size: 13px; color: var(--color-text-secondary); font-weight: 500; display: block; margin-bottom: 8px;">优先级</label>
+                <div class="flex gap-2">
+                    <button onclick="selectPriority('high')" class="priority-btn flex-1 py-3 rounded-xl text-center" style="font-size: 14px; font-weight: 600; border: 1px solid var(--color-border-default); background: var(--color-bg-input); color: var(--color-text-secondary); transition: all 200ms;" data-priority="high">高</button>
+                    <button onclick="selectPriority('medium')" class="priority-btn flex-1 py-3 rounded-xl text-center" style="font-size: 14px; font-weight: 600; border: 1px solid var(--color-border-default); background: var(--color-bg-input); color: var(--color-text-secondary); transition: all 200ms;" data-priority="medium">中</button>
+                    <button onclick="selectPriority('low')" class="priority-btn flex-1 py-3 rounded-xl text-center" style="font-size: 14px; font-weight: 600; border: 1px solid var(--color-border-default); background: var(--color-bg-input); color: var(--color-text-secondary); transition: all 200ms;" data-priority="low">低</button>
+                </div>
+            </div>
+
+            <!-- Reminder -->
+            <div class="flex items-center justify-between mb-6 py-3 px-4 rounded-xl" style="background: var(--color-bg-input); border: 1px solid var(--color-border-default);">
+                <div>
+                    <span style="font-size: 15px; font-weight: 500;">定时提醒</span>
+                    <p style="font-size: 12px; color: var(--color-text-tertiary); margin-top: 2px;">提前 15 分钟通知</p>
+                </div>
+                <div id="toggle-reminder" class="toggle-switch" onclick="toggleReminder()"></div>
+            </div>
+
+            <!-- Save button -->
+            <button id="btn-save" onclick="saveTask()" class="btn-primary safe-bottom">保存</button>
+        </div>
+    </div>
+
+    <!-- ===================== ARCHIVED OVERLAY ===================== -->
+    <div id="overlay-archive" class="overlay" onclick="event.target===this && closeArchived()">
+        <div class="overlay-panel no-scrollbar">
+            <div class="flex items-center justify-between mb-6">
+                <button onclick="closeArchived()" class="flex h-9 w-9 items-center justify-center rounded-xl" style="border: 1px solid var(--color-border-default);">
+                    <i data-lucide="x" style="width:16px;height:16px;color:var(--color-text-primary)"></i>
+                </button>
+                <span style="font-size: 17px; font-weight: 600;">已归档任务</span>
+                <div style="width: 36px;"></div>
+            </div>
+            <div id="archived-list"></div>
+        </div>
+    </div>
+
+    <!-- ===================== APP JAVASCRIPT ===================== -->
+    <script>
+    // ===== FIREBASE CONFIG =====
+    const FIREBASE_DB_URL = 'https://my-todo-app-49e91-default-rtdb.asia-southeast1.firebasedatabase.app';
+    let firebaseReady = false;
+    let dbRef = null;
+
+    function initFirebase() {
+        try {
+            const app = firebase.initializeApp({
+                apiKey: 'AIzaSyDummy',
+                authDomain: 'my-todo-app-49e91.firebaseapp.com',
+                databaseURL: FIREBASE_DB_URL,
+                projectId: 'my-todo-app-49e91'
+            });
+            dbRef = firebase.database().ref('tasks');
+            firebaseReady = true;
+            // Update sync indicator
+            const indicator = document.getElementById('sync-indicator');
+            if (indicator) { indicator.style.opacity = '1'; indicator.title = '云端已同步'; }
+            listenForRemoteChanges();
+            // First load: push local data to Firebase if remote is empty
+            dbRef.once('value', (snapshot) => {
+                if (!snapshot.val() && tasks.length > 0) {
+                    pushToFirebase();
+                }
+            });
+            console.log('Firebase connected');
+        } catch (e) {
+            console.warn('Firebase init failed, using local-only mode:', e.message);
+            firebaseReady = false;
+        }
+    }
+
+    function listenForRemoteChanges() {
+        if (!dbRef) return;
+        dbRef.on('value', (snapshot) => {
+            const remoteData = snapshot.val();
+            if (remoteData && Array.isArray(remoteData)) {
+                // Remote data takes precedence on first load or if remote has newer changes
+                tasks = remoteData;
+                saveDataLocal();
+                renderHome();
+            }
+        });
+    }
+
+    function pushToFirebase() {
+        if (!firebaseReady || !dbRef) return;
+        dbRef.set(tasks).catch(e => console.warn('Firebase sync error:', e));
+    }
+
+    // ===== DATA LAYER =====
+    const STORAGE_KEY = 'todo_app_data';
+    let tasks = [];
+    let editingId = null;
+    let currentMonth = new Date();
+    let selectedDate = null;
+    let formTag = 'work';
+    let formPriority = 'medium';
+    let formReminder = false;
+    let statTab = 'week';
+    let ringChart = null;
+    let barChart = null;
+
+    function loadData() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (raw) tasks = JSON.parse(raw);
+        } catch(e) { tasks = []; }
+        if (tasks.length === 0) seedDemoData();
+    }
+
+    function saveData() {
+        saveDataLocal();
+        pushToFirebase();
+    }
+
+    function saveDataLocal() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+    }
+
+    function seedDemoData() {
+        const today = new Date();
+        const y = today.getFullYear(), m = String(today.getMonth()+1).padStart(2,'0'), d = String(today.getDate()).padStart(2,'0');
+        const todayStr = `${y}-${m}-${d}`;
+        const tasks_data = [
+            { id: genId(), title: '完成周报', date: todayStr, time: '09:00', tag: 'work', priority: 'high', reminder: true, completed: false, archived: false },
+            { id: genId(), title: '团队午餐', date: todayStr, time: '12:00', tag: 'personal', priority: 'low', reminder: false, completed: true, archived: false },
+            { id: genId(), title: '产品评审会议', date: todayStr, time: '14:30', tag: 'work', priority: 'high', reminder: true, completed: false, archived: false },
+            { id: genId(), title: '健身 - 跑步 5km', date: todayStr, time: '18:00', tag: 'health', priority: 'medium', reminder: true, completed: false, archived: false },
+            { id: genId(), title: '阅读技术文档', date: todayStr, time: '21:00', tag: 'study', priority: 'low', reminder: false, completed: false, archived: false },
+            { id: genId(), title: '提交季度总结', date: getDateOffset(-1), time: '10:00', tag: 'work', priority: 'high', reminder: true, completed: true, archived: false },
+            { id: genId(), title: '买生日礼物', date: getDateOffset(-1), time: '15:00', tag: 'personal', priority: 'medium', reminder: false, completed: true, archived: false },
+            { id: genId(), title: '晨间冥想', date: getDateOffset(-2), time: '07:00', tag: 'health', priority: 'low', reminder: true, completed: true, archived: false },
+            { id: genId(), title: '修复线上 bug', date: getDateOffset(-3), time: '11:00', tag: 'work', priority: 'high', reminder: true, completed: true, archived: false },
+            { id: genId(), title: '学完 React 章节', date: getDateOffset(-4), time: '20:00', tag: 'study', priority: 'medium', reminder: false, completed: true, archived: false },
+            { id: genId(), title: '牙科检查', date: getDateOffset(-5), time: '10:30', tag: 'health', priority: 'medium', reminder: true, completed: true, archived: false },
+            { id: genId(), title: '写项目提案', date: getDateOffset(-6), time: '14:00', tag: 'work', priority: 'high', reminder: true, completed: true, archived: false },
+            { id: genId(), title: '整理书架', date: getDateOffset(1), time: '10:00', tag: 'personal', priority: 'low', reminder: false, completed: false, archived: false },
+            { id: genId(), title: '客户演示准备', date: getDateOffset(1), time: '15:00', tag: 'work', priority: 'high', reminder: true, completed: false, archived: false },
+            { id: genId(), title: '瑜伽课', date: getDateOffset(2), time: '08:00', tag: 'health', priority: 'medium', reminder: true, completed: false, archived: false },
+            { id: genId(), title: '和朋友聚餐', date: getDateOffset(2), time: '19:00', tag: 'personal', priority: 'low', reminder: false, completed: false, archived: false },
+            { id: genId(), title: '上线部署', date: getDateOffset(3), time: '09:00', tag: 'work', priority: 'high', reminder: true, completed: false, archived: false },
+            { id: genId(), title: '看设计书籍', date: getDateOffset(-7), time: '21:00', tag: 'study', priority: 'low', reminder: false, completed: true, archived: false },
+            { id: genId(), title: '做早餐', date: getDateOffset(-8), time: '07:30', tag: 'health', priority: 'low', reminder: false, completed: true, archived: true },
+            { id: genId(), title: '部门周会', date: getDateOffset(-8), time: '09:30', tag: 'work', priority: 'medium', reminder: true, completed: true, archived: true },
+            { id: genId(), title: '给妈妈打电话', date: getDateOffset(-10), time: '19:00', tag: 'personal', priority: 'medium', reminder: false, completed: true, archived: true },
+        ];
+        tasks = tasks_data;
+        saveData();
+    }
+
+    function genId() { return Date.now().toString(36) + Math.random().toString(36).substr(2, 5); }
+    function getDateOffset(days) {
+        const d = new Date(); d.setDate(d.getDate() + days);
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    // ===== NAVIGATION =====
+    function showPage(pageId) {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(pageId).classList.add('active');
+        if (pageId === 'page-home') renderHome();
+        if (pageId === 'page-stats') renderStats();
+        lucide.createIcons();
+    }
+
+    // ===== CALENDAR =====
+    function renderCalendar() {
+        const year = currentMonth.getFullYear(), month = currentMonth.getMonth();
+        const months = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+        document.getElementById('cal-month-label').textContent = `${year}年 ${months[month]}`;
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const daysInPrev = new Date(year, month, 0).getDate();
+        const today = new Date();
+        const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`;
+
+        // Task dates for dots
+        const taskDates = new Set(tasks.filter(t => !t.archived).map(t => t.date));
+
+        let html = '';
+        // Previous month days
+        for (let i = firstDay - 1; i >= 0; i--) {
+            html += `<div class="cal-cell other-month">${daysInPrev - i}</div>`;
+        }
+        // Current month days
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+            const isToday = dateStr === todayStr;
+            const hasTask = taskDates.has(dateStr);
+            html += `<div class="cal-cell ${isToday ? 'today' : ''}" onclick="selectCalDate('${dateStr}')" style="position:relative;">
+                ${d}${hasTask && !isToday ? '<div class="dot"></div>' : ''}
+            </div>`;
+        }
+        // Next month days
+        const totalCells = firstDay + daysInMonth;
+        const remaining = (7 - totalCells % 7) % 7;
+        for (let i = 1; i <= remaining; i++) {
+            html += `<div class="cal-cell other-month">${i}</div>`;
+        }
+        document.getElementById('cal-grid').innerHTML = html;
+    }
+
+    function changeMonth(delta) {
+        currentMonth.setMonth(currentMonth.getMonth() + delta);
+        renderCalendar();
+    }
+
+    function selectCalDate(dateStr) {
+        selectedDate = dateStr;
+        renderTaskList();
+    }
+
+    // ===== TASK LIST =====
+    function renderTaskList() {
+        const dateStr = selectedDate || getTodayStr();
+        const dayTasks = tasks.filter(t => t.date === dateStr && !t.archived);
+        const container = document.getElementById('task-list');
+        const emptyState = document.getElementById('empty-state');
+
+        if (dayTasks.length === 0) {
+            container.innerHTML = '';
+            emptyState.classList.remove('hidden');
+            return;
+        }
+        emptyState.classList.add('hidden');
+
+        // Group by time period
+        const morning = dayTasks.filter(t => t.time && parseInt(t.time) < 12).sort((a,b) => a.time.localeCompare(b.time));
+        const afternoon = dayTasks.filter(t => t.time && parseInt(t.time) >= 12 && parseInt(t.time) < 18).sort((a,b) => a.time.localeCompare(b.time));
+        const evening = dayTasks.filter(t => t.time && parseInt(t.time) >= 18).sort((a,b) => a.time.localeCompare(b.time));
+        const noTime = dayTasks.filter(t => !t.time);
+
+        let html = '';
+        if (morning.length) html += renderTimeGroup('上午', 'sunrise', morning);
+        if (afternoon.length) html += renderTimeGroup('下午', 'sun', afternoon);
+        if (evening.length) html += renderTimeGroup('晚上', 'moon', evening);
+        if (noTime.length) html += renderTimeGroup('全天', 'circle', noTime);
+
+        container.innerHTML = html;
+        lucide.createIcons();
+    }
+
+    function renderTimeGroup(label, icon, items) {
+        const tagLabels = { work: '工作', personal: '个人', health: '健康', study: '学习' };
+        const tagColors = { work: 'var(--tag-work)', personal: 'var(--tag-personal)', health: 'var(--tag-health)', study: 'var(--tag-study)' };
+        const tagBgs = { work: 'var(--color-primary-light)', personal: 'var(--state-info-light)', health: 'var(--state-success-light)', study: 'var(--state-warning-light)' };
+        const priorityColors = { high: 'var(--priority-high)', medium: 'var(--priority-medium)', low: 'var(--priority-low)' };
+        const priorityLabels = { high: '高', medium: '中', low: '低' };
+        const priorityBgs = { high: 'var(--state-error-light)', medium: 'var(--state-warning-light)', low: 'var(--state-info-light)' };
+
+        let cards = items.map(t => `
+            <div class="card flex gap-3 p-3 mb-2" onclick="openEditTask('${t.id}')">
+                <div class="priority-bar" style="background: ${priorityColors[t.priority]};"></div>
+                <div class="flex items-start gap-3 flex-1 min-w-0">
+                    <div class="task-checkbox ${t.completed ? 'checked' : ''}" onclick="event.stopPropagation(); toggleComplete('${t.id}')">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="${t.completed ? 'line-through' : ''}" style="font-size: 15px; font-weight: 500; ${t.completed ? 'color: var(--color-text-tertiary);' : ''} overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.title}</p>
+                        <div class="flex items-center gap-2 mt-1 flex-wrap">
+                            ${t.time ? `<span style="font-size: 12px; color: var(--color-text-tertiary);">${t.time}</span>` : ''}
+                            <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: ${tagBgs[t.tag]}; color: ${tagColors[t.tag]}; font-weight: 500;">${tagLabels[t.tag] || '其他'}</span>
+                            <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: ${priorityBgs[t.priority]}; color: ${priorityColors[t.priority]}; font-weight: 600;">${priorityLabels[t.priority]}</span>
+                            ${t.reminder ? '<span class="reminder-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>提醒</span>' : ''}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        return `
+            <div class="mb-4">
+                <div class="flex items-center gap-2 mb-2 px-1">
+                    <i data-lucide="${icon}" style="width:14px;height:14px;color:${label==='上午'?'var(--state-warning)':label==='下午'?'var(--color-primary)':'var(--color-text-tertiary)'}"></i>
+                    <span style="font-size: 13px; font-weight: 600; color: var(--color-text-secondary);">${label}</span>
+                </div>
+                ${cards}
+            </div>
+        `;
+    }
+
+    function getTodayStr() {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    function renderHome() {
+        selectedDate = getTodayStr();
+        currentMonth = new Date();
+        renderCalendar();
+        renderTaskList();
+    }
+
+    // ===== ADD / EDIT TASK =====
+    function openAddTask() {
+        editingId = null;
+        document.getElementById('form-title').textContent = '新建待办';
+        document.getElementById('input-title').value = '';
+        document.getElementById('input-date').value = selectedDate || getTodayStr();
+        document.getElementById('input-time').value = '';
+        formTag = 'work'; formPriority = 'medium'; formReminder = false;
+        updateFormUI();
+        document.getElementById('overlay-add').classList.add('active');
+    }
+
+    function openEditTask(id) {
+        const t = tasks.find(x => x.id === id);
+        if (!t) return;
+        editingId = id;
+        document.getElementById('form-title').textContent = '编辑待办';
+        document.getElementById('input-title').value = t.title;
+        document.getElementById('input-date').value = t.date;
+        document.getElementById('input-time').value = t.time || '';
+        formTag = t.tag; formPriority = t.priority; formReminder = t.reminder;
+        updateFormUI();
+        document.getElementById('overlay-add').classList.add('active');
+    }
+
+    function closeAddTask() {
+        document.getElementById('overlay-add').classList.remove('active');
+        editingId = null;
+    }
+
+    function updateFormUI() {
+        // Tags
+        document.querySelectorAll('#tag-selector .tag-pill').forEach(el => {
+            const tag = el.dataset.tag;
+            if (tag === formTag) {
+                el.classList.add('selected');
+                const colors = { work: 'var(--color-primary)', personal: 'var(--tag-personal)', health: 'var(--tag-health)', study: 'var(--tag-study)' };
+                el.style.background = colors[tag]; el.style.color = '#fff'; el.style.borderColor = 'transparent';
+            } else {
+                el.classList.remove('selected');
+                const bgs = { work: 'var(--color-primary-light)', personal: 'var(--state-info-light)', health: 'var(--state-success-light)', study: 'var(--state-warning-light)' };
+                const colors = { work: 'var(--tag-work)', personal: 'var(--tag-personal)', health: 'var(--tag-health)', study: 'var(--tag-study)' };
+                el.style.background = bgs[tag]; el.style.color = colors[tag]; el.style.borderColor = 'transparent';
+            }
+        });
+        // Priority
+        const pColors = { high: 'var(--priority-high)', medium: 'var(--priority-medium)', low: 'var(--priority-low)' };
+        const pBgs = { high: 'var(--state-error-light)', medium: 'var(--state-warning-light)', low: 'var(--state-info-light)' };
+        document.querySelectorAll('.priority-btn').forEach(el => {
+            const p = el.dataset.priority;
+            if (p === formPriority) {
+                el.style.background = pBgs[p]; el.style.color = pColors[p]; el.style.borderColor = pColors[p];
+            } else {
+                el.style.background = 'var(--color-bg-input)'; el.style.color = 'var(--color-text-secondary)'; el.style.borderColor = 'var(--color-border-default)';
+            }
+        });
+        // Reminder
+        const toggle = document.getElementById('toggle-reminder');
+        if (formReminder) toggle.classList.add('active'); else toggle.classList.remove('active');
+    }
+
+    function selectTag(tag) { formTag = tag; updateFormUI(); }
+    function selectPriority(p) { formPriority = p; updateFormUI(); }
+    function toggleReminder() { formReminder = !formReminder; updateFormUI(); }
+
+    function saveTask() {
+        const title = document.getElementById('input-title').value.trim();
+        if (!title) { showToast('请输入任务标题'); return; }
+        const date = document.getElementById('input-date').value;
+        const time = document.getElementById('input-time').value;
+
+        if (editingId) {
+            const t = tasks.find(x => x.id === editingId);
+            if (t) { t.title = title; t.date = date; t.time = time; t.tag = formTag; t.priority = formPriority; t.reminder = formReminder; }
+            showToast('任务已更新');
+        } else {
+            tasks.push({ id: genId(), title, date, time, tag: formTag, priority: formPriority, reminder: formReminder, completed: false, archived: false });
+            showToast('任务已创建');
+        }
+        saveData();
+        closeAddTask();
+        renderHome();
+    }
+
+    function toggleComplete(id) {
+        const t = tasks.find(x => x.id === id);
+        if (!t) return;
+        t.completed = !t.completed;
+        if (t.completed) {
+            // Auto-archive completed tasks after a short visual delay
+            setTimeout(() => { t.archived = true; saveData(); renderTaskList(); }, 300);
+        }
+        saveData();
+        renderTaskList();
+        if (t.completed) showToast('完成！已自动归档');
+    }
+
+    // ===== ARCHIVED =====
+    function showArchived() {
+        const archived = tasks.filter(t => t.archived);
+        document.getElementById('archived-count').textContent = `${archived.length} 项`;
+        const list = document.getElementById('archived-list');
+        if (archived.length === 0) {
+            list.innerHTML = '<p style="text-align:center;color:var(--color-text-tertiary);padding:32px 0;font-size:14px;">暂无归档任务</p>';
+        } else {
+            list.innerHTML = archived.map(t => `
+                <div class="flex items-center gap-3 p-3 mb-2 rounded-xl" style="background:var(--color-bg-surface); border: 1px solid var(--color-border-subtle);">
+                    <div class="task-checkbox checked"><svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+                    <div class="flex-1 min-w-0">
+                        <p class="line-through" style="color:var(--color-text-tertiary);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${t.title}</p>
+                        <span style="font-size:12px;color:var(--color-text-tertiary);">${t.date}${t.time ? ' ' + t.time : ''}</span>
+                    </div>
+                    <button onclick="unarchive('${t.id}')" style="color:var(--color-text-tertiary);padding:4px;" title="恢复">
+                        <i data-lucide="rotate-ccw" style="width:14px;height:14px;"></i>
+                    </button>
+                </div>
+            `).join('');
+        }
+        document.getElementById('overlay-archive').classList.add('active');
+        lucide.createIcons();
+    }
+
+    function closeArchived() { document.getElementById('overlay-archive').classList.remove('active'); }
+
+    function unarchive(id) {
+        const t = tasks.find(x => x.id === id);
+        if (t) { t.archived = false; t.completed = false; }
+        saveData(); showArchived(); renderHome();
+        showToast('任务已恢复');
+    }
+
+    // ===== STATISTICS =====
+    function renderStats() {
+        const active = tasks.filter(t => !t.archived);
+        const completed = tasks.filter(t => t.completed && !t.archived);
+        const total = active.length;
+        const done = completed.length;
+        const pct = total > 0 ? Math.round(done / total * 100) : 0;
+
+        document.getElementById('stat-percent').textContent = pct + '%';
+        document.getElementById('stat-summary').textContent = statTab === 'week' ? `本周完成 ${done}/${total} 项` : `本月完成 ${done}/${total} 项`;
+
+        renderRingChart(pct);
+        renderBarChart();
+        renderCategoryStats();
+    }
+
+    function renderRingChart(pct) {
+        const ctx = document.getElementById('ring-chart').getContext('2d');
+        if (ringChart) ringChart.destroy();
+        ringChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [pct, 100 - pct],
+                    backgroundColor: ['#6C5CE7', '#2A2A4A'],
+                    borderWidth: 0,
+                    cutout: '78%'
+                }]
+            },
+            options: {
+                responsive: false,
+                plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                animation: { animateRotate: true, duration: 800 }
+            }
+        });
+    }
+
+    function renderBarChart() {
+        const ctx = document.getElementById('bar-chart').getContext('2d');
+        if (barChart) barChart.destroy();
+
+        let labels, data;
+        if (statTab === 'week') {
+            const dayNames = ['日','一','二','三','四','五','六'];
+            labels = dayNames;
+            data = Array(7).fill(0);
+            const today = new Date();
+            const weekStart = new Date(today);
+            weekStart.setDate(today.getDate() - today.getDay());
+            tasks.filter(t => !t.archived).forEach(t => {
+                const d = new Date(t.date);
+                const diff = Math.floor((d - weekStart) / 86400000);
+                if (diff >= 0 && diff < 7 && t.completed) data[diff]++;
+            });
+        } else {
+            labels = Array.from({length: 30}, (_, i) => `${i+1}`);
+            data = Array(30).fill(0);
+            const now = new Date();
+            tasks.filter(t => !t.archived).forEach(t => {
+                const d = new Date(t.date);
+                if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+                    const day = d.getDate() - 1;
+                    if (day >= 0 && day < 30 && t.completed) data[day]++;
+                }
+            });
+        }
+
+        barChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    data,
+                    backgroundColor: 'rgba(108, 92, 231, 0.6)',
+                    borderRadius: 4,
+                    borderSkipped: false,
+                    barPercentage: statTab === 'week' ? 0.5 : 0.7
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { backgroundColor: '#2A2A4A', titleColor: '#F0F0F5', bodyColor: '#A0A0B8', borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1, cornerRadius: 8, padding: 10 } },
+                scales: {
+                    x: { grid: { display: false }, ticks: { color: '#6B6B85', font: { size: 10 }, maxRotation: 0 } },
+                    y: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#6B6B85', font: { size: 10 }, stepSize: 1 }, beginAtZero: true }
+                }
+            }
+        });
+    }
+
+    function renderCategoryStats() {
+        const tagLabels = { work: '工作', personal: '个人', health: '健康', study: '学习' };
+        const tagIcons = { work: 'briefcase', personal: 'user', health: 'heart', study: 'book-open' };
+        const tagColors = { work: 'var(--tag-work)', personal: 'var(--tag-personal)', health: 'var(--tag-health)', study: 'var(--tag-study)' };
+        const tagBgs = { work: 'var(--color-primary-light)', personal: 'var(--state-info-light)', health: 'var(--state-success-light)', study: 'var(--state-warning-light)' };
+
+        const container = document.getElementById('category-stats');
+        let html = '';
+        for (const [tag, label] of Object.entries(tagLabels)) {
+            const catTasks = tasks.filter(t => t.tag === tag && !t.archived);
+            const catDone = catTasks.filter(t => t.completed).length;
+            const pct = catTasks.length > 0 ? Math.round(catDone / catTasks.length * 100) : 0;
+            html += `
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="flex h-10 w-10 items-center justify-center rounded-xl" style="background: ${tagBgs[tag]};">
+                        <i data-lucide="${tagIcons[tag]}" style="width:18px;height:18px;color:${tagColors[tag]}"></i>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between mb-1">
+                            <span style="font-size: 14px; font-weight: 500;">${label}</span>
+                            <span style="font-size: 13px; color: var(--color-text-secondary);">${pct}%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${pct}%; background: ${tagColors[tag]};"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        container.innerHTML = html;
+        lucide.createIcons();
+    }
+
+    function switchStatTab(tab) {
+        statTab = tab;
+        const weekBtn = document.getElementById('tab-week');
+        const monthBtn = document.getElementById('tab-month');
+        if (tab === 'week') {
+            weekBtn.style.background = 'var(--color-primary)'; weekBtn.style.color = '#fff';
+            monthBtn.style.background = 'transparent'; monthBtn.style.color = 'var(--color-text-secondary)';
+        } else {
+            monthBtn.style.background = 'var(--color-primary)'; monthBtn.style.color = '#fff';
+            weekBtn.style.background = 'transparent'; weekBtn.style.color = 'var(--color-text-secondary)';
+        }
+        renderStats();
+    }
+
+    // ===== TOAST =====
+    function showToast(msg) {
+        const el = document.getElementById('toast');
+        el.textContent = msg;
+        el.classList.add('show');
+        setTimeout(() => el.classList.remove('show'), 2000);
+    }
+
+    // ===== INIT =====
+    document.addEventListener('DOMContentLoaded', () => {
+        loadData();
+        initFirebase();
+        renderHome();
+        lucide.createIcons();
+    });
+    </script>
+</body>
+</html>
