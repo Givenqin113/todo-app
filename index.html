@@ -421,18 +421,17 @@
                 <input type="date" id="input-date" class="input-field">
             </div>
             <div class="mb-5">
-                <label style="font-size: 13px; color: var(--color-text-secondary); font-weight: 500; display: block; margin-bottom: 8px;">时间</label>
-                <input type="time" id="input-time" class="input-field">
-            </div>
-            <div class="mb-5">
                 <label style="font-size: 13px; color: var(--color-text-secondary); font-weight: 500; display: block; margin-bottom: 8px;">标签</label>
                 <div class="flex gap-2 flex-wrap" id="tag-selector">
-                    <span class="tag-pill" data-tag="work" onclick="selectTag('work')" style="background: var(--color-primary-light); color: var(--tag-work);">工作</span>
-                    <span class="tag-pill" data-tag="personal" onclick="selectTag('personal')" style="background: var(--state-info-light); color: var(--tag-personal);">个人</span>
-                    <span class="tag-pill" data-tag="health" onclick="selectTag('health')" style="background: var(--state-success-light); color: var(--tag-health);">健康</span>
-                    <span class="tag-pill" data-tag="study" onclick="selectTag('study')" style="background: var(--state-warning-light); color: var(--tag-study);">学习</span>
+                    <span class="tag-pill" data-tag="boss" onclick="selectTag('boss')" style="background: rgba(225,112,85,0.12); color: #E17055;">老板</span>
+                    <span class="tag-pill" data-tag="quality" onclick="selectTag('quality')" style="background: rgba(116,185,255,0.12); color: #74B9FF;">品质</span>
+                    <span class="tag-pill" data-tag="product" onclick="selectTag('product')" style="background: rgba(0,214,143,0.12); color: #00D68F;">生产</span>
+                    <span class="tag-pill" data-tag="project" onclick="selectTag('project')" style="background: rgba(108,92,231,0.12); color: #6C5CE7;">项目</span>
+                    <span class="tag-pill" data-tag="equip" onclick="selectTag('equip')" style="background: rgba(253,203,110,0.12); color: #FDCB6E;">设备/制程</span>
+                    <span class="tag-pill" data-tag="capacity" onclick="selectTag('capacity')" style="background: rgba(253,121,168,0.12); color: #FD79A8;">产能</span>
+                    <span class="tag-pill" data-tag="customer" onclick="selectTag('customer')" style="background: rgba(85,230,193,0.12); color: #55E6C1;">客户</span>
                 </div>
-                <input type="text" id="input-custom-tag" class="input-field mt-2" placeholder="输入自定义标签名（如：项目A）" maxlength="10" style="font-size: 13px; padding: 8px 12px;">
+                <input type="text" id="input-custom-tag" class="input-field mt-2" placeholder="输入自定义标签名" maxlength="10" style="font-size: 13px; padding: 8px 12px;">
             </div>
             <div class="mb-5">
                 <label style="font-size: 13px; color: var(--color-text-secondary); font-weight: 500; display: block; margin-bottom: 8px;">优先级</label>
@@ -445,13 +444,6 @@
             <div class="mb-5">
                 <label style="font-size: 13px; color: var(--color-text-secondary); font-weight: 500; display: block; margin-bottom: 8px;">负责人</label>
                 <input type="text" id="input-assignee" class="input-field" placeholder="输入负责人..." maxlength="30">
-            </div>
-            <div class="flex items-center justify-between mb-6 py-3 px-4 rounded-xl" style="background: var(--color-bg-input); border: 1px solid var(--color-border-default);">
-                <div>
-                    <span style="font-size: 15px; font-weight: 500;">定时提醒</span>
-                    <p style="font-size: 12px; color: var(--color-text-tertiary); margin-top: 2px;">提前 15 分钟通知</p>
-                </div>
-                <div id="toggle-reminder" class="toggle-switch" onclick="toggleReminder()"></div>
             </div>
             <button id="btn-save" onclick="saveTask()" class="btn-primary safe-bottom">保存</button>
         </div>
@@ -471,16 +463,18 @@
         </div>
     </div>
 
-    <!-- ===================== ALL TASKS OVERLAY ===================== -->
-    <div id="overlay-all-tasks" class="overlay" onclick="event.target===this && closeAllTasks()">
-        <div class="overlay-panel no-scrollbar">
-            <div class="flex items-center justify-between mb-6">
-                <button onclick="closeAllTasks()" class="flex h-9 w-9 items-center justify-center rounded-xl" style="border: 1px solid var(--color-border-default);">
-                    <i data-lucide="x" style="width:16px;height:16px;color:var(--color-text-primary)"></i>
+    <!-- ===================== ALL TASKS PAGE ===================== -->
+    <div id="page-all-tasks" class="page">
+        <div class="safe-top" style="background: var(--color-bg-base);">
+            <div class="flex items-center px-4 pt-2 pb-1" style="height: 44px;">
+                <button onclick="showPage('page-home')" class="flex h-9 w-9 items-center justify-center rounded-xl" style="border: 1px solid var(--color-border-default);">
+                    <i data-lucide="chevron-left" style="width:16px;height:16px;color:var(--color-text-primary)"></i>
                 </button>
-                <span style="font-size: 17px; font-weight: 600;">全部日程</span>
+                <span class="flex-1 text-center" style="font-size: 17px; font-weight: 600;">全部日程</span>
                 <div style="width: 36px;"></div>
             </div>
+        </div>
+        <div style="padding: 0 16px 40px;">
             <div id="all-tasks-list"></div>
         </div>
     </div>
@@ -575,23 +569,21 @@
         const today = new Date();
         const todayStr = fmtDate(today);
         tasks = [
-            { id: genId(), title: '完成周报', date: todayStr, time: '09:00', tag: 'work', priority: 'high', reminder: true, completed: false, archived: false, assignee: '张三' },
-            { id: genId(), title: '团队午餐', date: todayStr, time: '12:00', tag: 'personal', priority: 'low', reminder: false, completed: true, archived: false, assignee: '' },
-            { id: genId(), title: '产品评审会议', date: todayStr, time: '14:30', tag: 'work', priority: 'high', reminder: true, completed: false, archived: false, assignee: '李四' },
-            { id: genId(), title: '健身 - 跑步 5km', date: todayStr, time: '18:00', tag: 'health', priority: 'medium', reminder: true, completed: false, archived: false, assignee: '' },
-            { id: genId(), title: '阅读技术文档', date: todayStr, time: '21:00', tag: 'study', priority: 'low', reminder: false, completed: false, archived: false, assignee: '' },
-            { id: genId(), title: '提交季度总结', date: getDateOffset(-1), time: '10:00', tag: 'work', priority: 'high', reminder: true, completed: true, archived: false, assignee: '张三' },
-            { id: genId(), title: '买生日礼物', date: getDateOffset(-1), time: '15:00', tag: 'personal', priority: 'medium', reminder: false, completed: true, archived: false, assignee: '' },
-            { id: genId(), title: '晨间冥想', date: getDateOffset(-2), time: '07:00', tag: 'health', priority: 'low', reminder: true, completed: true, archived: false, assignee: '' },
-            { id: genId(), title: '修复线上 bug', date: getDateOffset(-3), time: '11:00', tag: 'work', priority: 'high', reminder: true, completed: true, archived: false, assignee: '王五' },
-            { id: genId(), title: '学完 React 章节', date: getDateOffset(-4), time: '20:00', tag: 'study', priority: 'medium', reminder: false, completed: true, archived: false, assignee: '' },
-            { id: genId(), title: '牙科检查', date: getDateOffset(-5), time: '10:30', tag: 'health', priority: 'medium', reminder: true, completed: true, archived: false, assignee: '' },
-            { id: genId(), title: '写项目提案', date: getDateOffset(-6), time: '14:00', tag: 'work', priority: 'high', reminder: true, completed: true, archived: false, assignee: '李四' },
-            { id: genId(), title: '整理书架', date: getDateOffset(1), time: '10:00', tag: 'personal', priority: 'low', reminder: false, completed: false, archived: false, assignee: '' },
-            { id: genId(), title: '客户演示准备', date: getDateOffset(1), time: '15:00', tag: 'work', priority: 'high', reminder: true, completed: false, archived: false, assignee: '张三' },
-            { id: genId(), title: '瑜伽课', date: getDateOffset(2), time: '08:00', tag: 'health', priority: 'medium', reminder: true, completed: false, archived: false, assignee: '' },
-            { id: genId(), title: '和朋友聚餐', date: getDateOffset(2), time: '19:00', tag: 'personal', priority: 'low', reminder: false, completed: false, archived: false, assignee: '' },
-            { id: genId(), title: '上线部署', date: getDateOffset(3), time: '09:00', tag: 'work', priority: 'high', reminder: true, completed: false, archived: false, assignee: '王五' },
+            { id: genId(), title: '完成周报', date: todayStr, tag: 'boss', priority: 'high', reminder: false, completed: false, archived: false, statusClosed: false, assignee: '张三' },
+            { id: genId(), title: '产品评审会议', date: todayStr, tag: 'project', priority: 'high', reminder: false, completed: false, archived: false, statusClosed: false, assignee: '李四' },
+            { id: genId(), title: '品质巡检', date: todayStr, tag: 'quality', priority: 'medium', reminder: false, completed: false, archived: false, statusClosed: false, assignee: '' },
+            { id: genId(), title: '客户样品出货', date: todayStr, tag: 'customer', priority: 'high', reminder: false, completed: false, archived: false, statusClosed: false, assignee: '王五' },
+            { id: genId(), title: '提交季度总结', date: getDateOffset(-1), tag: 'boss', priority: 'high', reminder: false, completed: true, archived: false, statusClosed: false, assignee: '张三' },
+            { id: genId(), title: '生产排期确认', date: getDateOffset(-1), tag: 'product', priority: 'medium', reminder: false, completed: true, archived: false, statusClosed: false, assignee: '' },
+            { id: genId(), title: '设备保养', date: getDateOffset(-2), tag: 'equip', priority: 'low', reminder: false, completed: true, archived: false, statusClosed: false, assignee: '' },
+            { id: genId(), title: '修复线上 bug', date: getDateOffset(-3), tag: 'project', priority: 'high', reminder: false, completed: true, archived: false, statusClosed: false, assignee: '王五' },
+            { id: genId(), title: '产能分析报告', date: getDateOffset(-4), tag: 'capacity', priority: 'medium', reminder: false, completed: true, archived: false, statusClosed: false, assignee: '' },
+            { id: genId(), title: '制程优化方案', date: getDateOffset(-5), tag: 'equip', priority: 'medium', reminder: false, completed: true, archived: false, statusClosed: false, assignee: '' },
+            { id: genId(), title: '写项目提案', date: getDateOffset(-6), tag: 'project', priority: 'high', reminder: false, completed: true, archived: false, statusClosed: false, assignee: '李四' },
+            { id: genId(), title: '客户回访', date: getDateOffset(1), tag: 'customer', priority: 'low', reminder: false, completed: false, archived: false, statusClosed: false, assignee: '' },
+            { id: genId(), title: '客户演示准备', date: getDateOffset(1), tag: 'project', priority: 'high', reminder: false, completed: false, archived: false, statusClosed: false, assignee: '张三' },
+            { id: genId(), title: '产能评估', date: getDateOffset(2), tag: 'capacity', priority: 'medium', reminder: false, completed: false, archived: false, statusClosed: false, assignee: '' },
+            { id: genId(), title: '上线部署', date: getDateOffset(3), tag: 'project', priority: 'high', reminder: false, completed: false, archived: false, statusClosed: false, assignee: '王五' },
         ];
         saveData();
     }
@@ -599,10 +591,13 @@
     // ===== CUSTOM TAG REGISTRY =====
     // Built-in tags with preset colors
     const builtInTags = {
-        work:     { label: '工作', color: '#6C5CE7', bg: 'rgba(108,92,231,0.12)' },
-        personal: { label: '个人', color: '#4ECDC4', bg: 'rgba(78,205,196,0.12)' },
-        health:   { label: '健康', color: '#00D68F', bg: 'rgba(0,214,143,0.12)' },
-        study:    { label: '学习', color: '#FFAA00', bg: 'rgba(255,170,0,0.12)' }
+        boss:     { label: '老板',   color: '#E17055', bg: 'rgba(225,112,85,0.12)' },
+        quality:  { label: '品质',   color: '#74B9FF', bg: 'rgba(116,185,255,0.12)' },
+        product:  { label: '生产',   color: '#00D68F', bg: 'rgba(0,214,143,0.12)' },
+        project:  { label: '项目',   color: '#6C5CE7', bg: 'rgba(108,92,231,0.12)' },
+        equip:    { label: '设备/制程', color: '#FDCB6E', bg: 'rgba(253,203,110,0.12)' },
+        capacity: { label: '产能',   color: '#FD79A8', bg: 'rgba(253,121,168,0.12)' },
+        customer: { label: '客户',   color: '#55E6C1', bg: 'rgba(85,230,193,0.12)' }
     };
     // Color palette for auto-assigning to custom tags
     const customTagPalette = ['#E17055','#74B9FF','#A29BFE','#FD79A8','#55E6C1','#FDCB6E','#6C5CE7','#E84393','#00CEC9','#D63031','#81ECEC','#DFE6E9'];
@@ -722,16 +717,8 @@
         if (dayTasks.length === 0) { container.innerHTML = ''; emptyState.classList.remove('hidden'); return; }
         emptyState.classList.add('hidden');
 
-        const morning = dayTasks.filter(t => t.time && parseInt(t.time) < 12).sort((a,b) => a.time.localeCompare(b.time));
-        const afternoon = dayTasks.filter(t => t.time && parseInt(t.time) >= 12 && parseInt(t.time) < 18).sort((a,b) => a.time.localeCompare(b.time));
-        const evening = dayTasks.filter(t => t.time && parseInt(t.time) >= 18).sort((a,b) => a.time.localeCompare(b.time));
-        const noTime = dayTasks.filter(t => !t.time);
-
         let html = '';
-        if (morning.length) html += renderTimeGroup('上午', 'sunrise', morning);
-        if (afternoon.length) html += renderTimeGroup('下午', 'sun', afternoon);
-        if (evening.length) html += renderTimeGroup('晚上', 'moon', evening);
-        if (noTime.length) html += renderTimeGroup('全天', 'circle', noTime);
+        html += renderTimeGroup('今日待办', 'calendar-check', dayTasks);
         container.innerHTML = html;
         lucide.createIcons();
     }
@@ -753,11 +740,9 @@
                     <div class="flex-1 min-w-0">
                         <p class="${t.completed ? 'line-through' : ''}" style="font-size: 15px; font-weight: 500; ${t.completed ? 'color: var(--color-text-tertiary);' : ''} overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.title}</p>
                         <div class="flex items-center gap-2 mt-1 flex-wrap">
-                            ${t.time ? `<span style="font-size: 12px; color: var(--color-text-tertiary);">${t.time}</span>` : ''}
                             <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: ${tb}; color: ${tc}; font-weight: 500;">${tl}</span>
                             <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: ${priorityBgs[t.priority]}; color: ${priorityColors[t.priority]}; font-weight: 600;">${priorityLabels[t.priority]}</span>
                             ${t.assignee ? `<span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: rgba(255,255,255,0.06); color: var(--color-text-secondary); font-weight: 500;">${t.assignee}</span>` : ''}
-                            ${t.reminder ? '<span class="reminder-badge"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>提醒</span>' : ''}
                         </div>
                     </div>
                 </div>
@@ -789,10 +774,9 @@
         document.getElementById('form-title').textContent = '新建待办';
         document.getElementById('input-title').value = '';
         document.getElementById('input-date').value = selectedDate || fmtDate(new Date());
-        document.getElementById('input-time').value = '';
         document.getElementById('input-assignee').value = '';
         document.getElementById('input-custom-tag').value = '';
-        formTag = 'work'; formPriority = 'medium'; formReminder = false;
+        formTag = 'boss'; formPriority = 'medium'; formReminder = false;
         updateFormUI();
         document.getElementById('overlay-add').classList.add('active');
     }
@@ -804,7 +788,6 @@
         document.getElementById('form-title').textContent = '编辑待办';
         document.getElementById('input-title').value = t.title;
         document.getElementById('input-date').value = t.date;
-        document.getElementById('input-time').value = t.time || '';
         document.getElementById('input-assignee').value = t.assignee || '';
         formTag = t.tag; formPriority = t.priority; formReminder = t.reminder;
         // If tag is not a built-in, show it in custom input
@@ -836,8 +819,7 @@
             if (p === formPriority) { el.style.background = pBgs[p]; el.style.color = pColors[p]; el.style.borderColor = pColors[p]; }
             else { el.style.background = 'var(--color-bg-input)'; el.style.color = 'var(--color-text-secondary)'; el.style.borderColor = 'var(--color-border-default)'; }
         });
-        const toggle = document.getElementById('toggle-reminder');
-        if (formReminder) toggle.classList.add('active'); else toggle.classList.remove('active');
+        // Reminder toggle removed - no UI to update
     }
 
     function selectTag(tag) {
@@ -852,7 +834,6 @@
         const title = document.getElementById('input-title').value.trim();
         if (!title) { showToast('请输入任务标题'); return; }
         const date = document.getElementById('input-date').value;
-        const time = document.getElementById('input-time').value;
         const assignee = document.getElementById('input-assignee').value.trim();
         // Check custom tag input first
         const customTag = document.getElementById('input-custom-tag').value.trim();
@@ -860,10 +841,10 @@
 
         if (editingId) {
             const t = tasks.find(x => x.id === editingId);
-            if (t) { t.title = title; t.date = date; t.time = time; t.tag = finalTag; t.priority = formPriority; t.reminder = formReminder; t.assignee = assignee; }
+            if (t) { t.title = title; t.date = date; t.tag = finalTag; t.priority = formPriority; t.reminder = formReminder; t.assignee = assignee; }
             showToast('任务已更新');
         } else {
-            tasks.push({ id: genId(), title, date, time, tag: finalTag, priority: formPriority, reminder: formReminder, completed: false, archived: false, assignee });
+            tasks.push({ id: genId(), title, date, tag: finalTag, priority: formPriority, reminder: formReminder, completed: false, archived: false, statusClosed: false, assignee });
             showToast('任务已创建');
         }
         saveData(); closeAddTask(); renderHome();
@@ -873,27 +854,32 @@
         const t = tasks.find(x => x.id === id);
         if (!t) return;
         t.completed = !t.completed;
-        if (t.completed) setTimeout(() => { t.archived = true; saveData(); renderTaskList(); }, 300);
-        saveData(); renderTaskList();
-        if (t.completed) showToast('完成！已自动归档');
+        if (t.statusClosed) {
+            // CSV-imported "close" items: keep visible, don't auto-archive
+            saveData(); renderTaskList();
+            if (t.completed) showToast('已标记完成');
+        } else {
+            // Normal items: auto-archive on complete
+            if (t.completed) setTimeout(() => { t.archived = true; saveData(); renderTaskList(); }, 300);
+            saveData(); renderTaskList();
+            if (t.completed) showToast('完成！已自动归档');
+        }
     }
 
     // ===== EXPORT CSV =====
     function exportCSV() {
         if (isMobileOrStandalone()) return;
         const priorityLabels = { high: '高', medium: '中', low: '低' };
-        const tagLabels = { work: '工作', personal: '个人', health: '健康', study: '学习' };
         const BOM = '\uFEFF';
-        let csv = BOM + '任务标题,日期,时间,标签,优先级,负责人,提醒\n';
+        let csv = BOM + '任务标题,日期,标签,优先级,负责人,状态\n';
         tasks.filter(t => !t.archived).forEach(t => {
             const title = `"${(t.title || '').replace(/"/g, '""')}"`;
             const date = t.date || '';
-            const time = t.time || '';
-            const tag = tagLabels[t.tag] || t.tag || '';
+            const tag = getTagLabel(t.tag) || '';
             const priority = priorityLabels[t.priority] || t.priority || '';
             const assignee = `"${(t.assignee || '').replace(/"/g, '""')}"`;
-            const reminder = t.reminder ? '是' : '否';
-            csv += `${title},${date},${time},${tag},${priority},${assignee},${reminder}\n`;
+            const status = t.completed ? 'close' : 'open';
+            csv += `${title},${date},${tag},${priority},${assignee},${status}\n`;
         });
         const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
@@ -922,19 +908,32 @@
 
                 const priorityMap = { '高': 'high', '中': 'medium', '低': 'low' };
                 const imported = [];
-                // Skip header
+                // Detect format: old (8+ cols with time) or new (6 cols without time)
+                const headerCols = parseCSVLine(lines[0]);
+                const hasStatusCol = headerCols.length >= 6 && (headerCols[headerCols.length - 1] === '状态' || headerCols[headerCols.length - 1] === 'status');
+                const isOldFormat = headerCols.length >= 8;
                 for (let i = 1; i < lines.length; i++) {
                     const cols = parseCSVLine(lines[i]);
                     if (cols.length < 2) continue;
                     const title = cols[0] || '';
-                    const date = parseDate(cols[1]) || fmtDate(new Date());
-                    const time = parseTime(cols[2]);
-                    const tag = ensureTagExists(cols[3] || '工作');
-                    const priority = priorityMap[cols[4]] || 'medium';
-                    const assignee = cols[5] || '';
-                    const reminder = cols[6] === '是' || cols[6] === 'yes' || cols[6] === 'Yes' || cols[6] === 'YES' || cols[6] === 'true';
+                    let date, tag, priority, assignee, statusVal;
+                    if (isOldFormat) {
+                        date = parseDate(cols[1]) || fmtDate(new Date());
+                        // cols[2]=time, skip; cols[3]=tag, cols[4]=priority, cols[5]=assignee, cols[6]=reminder, cols[7]=status
+                        tag = ensureTagExists(cols[3] || '老板');
+                        priority = priorityMap[cols[4]] || 'medium';
+                        assignee = cols[5] || '';
+                        statusVal = hasStatusCol ? (cols[7] || '').trim().toLowerCase() : '';
+                    } else {
+                        date = parseDate(cols[1]) || fmtDate(new Date());
+                        tag = ensureTagExists(cols[2] || '老板');
+                        priority = priorityMap[cols[3]] || 'medium';
+                        assignee = cols[4] || '';
+                        statusVal = hasStatusCol ? (cols[5] || '').trim().toLowerCase() : '';
+                    }
+                    const isClosed = statusVal === 'close' || statusVal === 'closed' || statusVal === 'done' || statusVal === '已完成';
                     if (title) {
-                        imported.push({ id: genId(), title, date, time, tag, priority, reminder, completed: false, archived: false, assignee });
+                        imported.push({ id: genId(), title, date, tag, priority, reminder: false, completed: isClosed, archived: false, statusClosed: isClosed, assignee });
                     }
                 }
 
@@ -1070,7 +1069,7 @@
 
     function unarchive(id) {
         const t = tasks.find(x => x.id === id);
-        if (t) { t.archived = false; t.completed = false; }
+        if (t) { t.archived = false; t.completed = false; t.statusClosed = false; }
         saveData(); showArchived(); renderHome();
         showToast('任务已恢复');
     }
@@ -1238,7 +1237,7 @@
         lucide.createIcons();
     }
 
-    // ===== ALL TASKS LIST =====
+    // ===== ALL TASKS LIST (as page) =====
     function showAllTasks() {
         const active = tasks.filter(t => !t.archived).sort((a, b) => {
             if (a.date !== b.date) return a.date.localeCompare(b.date);
@@ -1249,34 +1248,46 @@
         if (active.length === 0) {
             container.innerHTML = '<p style="text-align:center;color:var(--color-text-tertiary);padding:32px 0;font-size:14px;">暂无待办事项</p>';
         } else {
+            const todayStr = fmtDate(new Date());
             const priorityColors = { high: 'var(--priority-high)', medium: 'var(--priority-medium)', low: 'var(--priority-low)' };
+            const priorityBgs = { high: 'var(--state-error-light)', medium: 'var(--state-warning-light)', low: 'var(--state-info-light)' };
             const priorityLabels = { high: '高', medium: '中', low: '低' };
             let currentDate = '';
             let html = '';
             active.forEach(t => {
+                const isOverdue = !t.completed && t.date < todayStr;
+                const isHigh = t.priority === 'high';
+                // Highlight: overdue gets red-ish border; high priority gets orange-ish border
+                let cardBorder = 'border: 1px solid var(--color-border-subtle);';
+                let cardBg = 'background: var(--color-bg-surface);';
+                if (isOverdue) { cardBorder = 'border: 1px solid rgba(255,107,107,0.4);'; cardBg = 'background: rgba(255,107,107,0.05);'; }
+                else if (isHigh) { cardBorder = 'border: 1px solid rgba(255,170,0,0.3);'; cardBg = 'background: rgba(255,170,0,0.04);'; }
+
                 if (t.date !== currentDate) {
                     currentDate = t.date;
                     const weekDays = ['周日','周一','周二','周三','周四','周五','周六'];
                     const d = new Date(t.date + 'T00:00:00');
-                    const todayStr = fmtDate(new Date());
                     const isToday = t.date === todayStr;
-                    const dayLabel = isToday ? '今天' : `${t.date.slice(5)} ${weekDays[d.getDay()]}`;
-                    html += `<div class="flex items-center gap-2 mt-4 mb-2"><span style="font-size: 13px; font-weight: 600; color: ${isToday ? 'var(--color-primary)' : 'var(--color-text-secondary)'};">${dayLabel}</span></div>`;
+                    const isPast = t.date < todayStr;
+                    const dayLabel = isToday ? '今天' : `${t.date.slice(5)} ${weekDays[d.getDay()]}${isPast ? ' (已过)' : ''}`;
+                    const dayColor = isToday ? 'var(--color-primary)' : isPast ? 'var(--state-error)' : 'var(--color-text-secondary)';
+                    html += `<div class="flex items-center gap-2 mt-4 mb-2"><span style="font-size: 13px; font-weight: 600; color: ${dayColor};">${dayLabel}</span></div>`;
                 }
                 const tc = getTagColor(t.tag), tb = getTagBg(t.tag), tl = getTagLabel(t.tag);
-                html += `<div class="card flex gap-3 p-3 mb-2" onclick="closeAllTasks(); selectCalDate('${t.date}');">
+                const overdueBadge = isOverdue ? `<span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: var(--state-error-light); color: var(--state-error); font-weight: 600;">已过</span>` : '';
+                html += `<div class="flex gap-3 p-3 mb-2 rounded-xl" style="${cardBg} ${cardBorder} box-shadow: var(--shadow-card); transition: transform var(--transition-fast); cursor: pointer;" onclick="showPage('page-home'); setTimeout(()=>selectCalDate('${t.date}'),100);">
                     <div class="priority-bar" style="background: ${priorityColors[t.priority]};"></div>
                     <div class="flex items-start gap-3 flex-1 min-w-0">
                         <div class="task-checkbox ${t.completed ? 'checked' : ''}" onclick="event.stopPropagation(); toggleComplete('${t.id}')">
                             <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
                         </div>
                         <div class="flex-1 min-w-0">
-                            <p class="${t.completed ? 'line-through' : ''}" style="font-size: 14px; font-weight: 500; ${t.completed ? 'color: var(--color-text-tertiary);' : ''} overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.title}</p>
+                            <p class="${t.completed ? 'line-through' : ''}" style="font-size: 14px; font-weight: 500; ${t.completed ? 'color: var(--color-text-tertiary);' : isOverdue ? 'color: var(--state-error);' : ''} overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.title}</p>
                             <div class="flex items-center gap-2 mt-1 flex-wrap">
-                                ${t.time ? `<span style="font-size: 11px; color: var(--color-text-tertiary);">${t.time}</span>` : ''}
                                 <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: ${tb}; color: ${tc}; font-weight: 500;">${tl}</span>
-                                <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: var(--color-state-warning-light); color: var(--priority-medium); font-weight: 600;">${priorityLabels[t.priority]}</span>
+                                <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: ${priorityBgs[t.priority]}; color: ${priorityColors[t.priority]}; font-weight: 600;">${priorityLabels[t.priority]}</span>
                                 ${t.assignee ? `<span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: rgba(255,255,255,0.06); color: var(--color-text-secondary); font-weight: 500;">${t.assignee}</span>` : ''}
+                                ${overdueBadge}
                             </div>
                         </div>
                     </div>
@@ -1284,11 +1295,11 @@
             });
             container.innerHTML = html;
         }
-        document.getElementById('overlay-all-tasks').classList.add('active');
+        showPage('page-all-tasks');
         lucide.createIcons();
     }
 
-    function closeAllTasks() { document.getElementById('overlay-all-tasks').classList.remove('active'); }
+    function closeAllTasks() { showPage('page-home'); }
 
     function switchStatTab(tab) {
         statTab = tab;
@@ -1306,6 +1317,32 @@
         setTimeout(() => el.classList.remove('show'), 2000);
     }
 
+    // ===== Overdue Reminder (Desktop Only) =====
+    function showOverdueReminder() {
+        const todayStr = fmtDate(new Date());
+        const overdue = tasks.filter(t => !t.archived && !t.completed && t.date < todayStr);
+        if (overdue.length === 0) return;
+        let listHtml = overdue.map(t => {
+            const tc = getTagColor(t.tag), tb = getTagBg(t.tag), tl = getTagLabel(t.tag);
+            return `<div class="flex items-center gap-3 p-3 mb-2 rounded-xl" style="background: rgba(255,107,107,0.05); border: 1px solid rgba(255,107,107,0.2);">
+                <div class="priority-bar" style="background: var(--priority-high);"></div>
+                <div class="flex-1 min-w-0">
+                    <p style="font-size: 14px; font-weight: 500; color: var(--state-error); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.title}</p>
+                    <div class="flex items-center gap-2 mt-1 flex-wrap">
+                        <span style="font-size: 11px; color: var(--color-text-tertiary);">${t.date}</span>
+                        <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: ${tb}; color: ${tc}; font-weight: 500;">${tl}</span>
+                        ${t.assignee ? `<span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: rgba(255,255,255,0.06); color: var(--color-text-secondary); font-weight: 500;">${t.assignee}</span>` : ''}
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+        document.getElementById('confirm-msg').innerHTML = `<div style="text-align:left; max-height: 300px; overflow-y: auto;">${listHtml}</div>`;
+        document.getElementById('confirm-ok-btn').textContent = '知道了';
+        document.getElementById('confirm-ok-btn').style.background = 'var(--color-primary)';
+        confirmCallback = () => { closeConfirm(); document.getElementById('confirm-ok-btn').style.background = ''; document.getElementById('confirm-ok-btn').textContent = '确认'; };
+        document.getElementById('confirm-overlay').classList.add('active');
+    }
+
     // ===== INIT =====
     document.addEventListener('DOMContentLoaded', () => {
         loadData();
@@ -1314,6 +1351,8 @@
         lucide.createIcons();
         // Bind confirm ok button
         document.getElementById('confirm-ok-btn').addEventListener('click', () => { if (confirmCallback) confirmCallback(); });
+        // Show overdue reminder on desktop after data loads
+        setTimeout(showOverdueReminder, 800);
     });
     </script>
 </body>
