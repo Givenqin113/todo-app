@@ -526,7 +526,7 @@
                     // Remote empty but local has data: push local to remote
                     pushToFirebase();
                 }
-                // If both empty, seedDemoData already ran in loadData()
+                // If both empty, user simply has no tasks yet
                 saveDataLocal();
                 renderHome();
                 showOverdueReminder();
@@ -582,34 +582,10 @@
             const raw = localStorage.getItem(STORAGE_KEY);
             if (raw) tasks = JSON.parse(raw);
         } catch(e) { tasks = []; }
-        if (tasks.length === 0) seedDemoData();
     }
 
     function saveData() { saveDataLocal(); pushToFirebase(); }
     function saveDataLocal() { localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); }
-
-    function seedDemoData() {
-        const today = new Date();
-        const todayStr = fmtDate(today);
-        tasks = [
-            { id: genId(), title: '完成周报', date: todayStr, tag: 'boss', priority: 'high', reminder: false, completed: false, archived: false, statusClosed: false, assignee: '张三' },
-            { id: genId(), title: '产品评审会议', date: todayStr, tag: 'project', priority: 'high', reminder: false, completed: false, archived: false, statusClosed: false, assignee: '李四' },
-            { id: genId(), title: '品质巡检', date: todayStr, tag: 'quality', priority: 'medium', reminder: false, completed: false, archived: false, statusClosed: false, assignee: '' },
-            { id: genId(), title: '客户样品出货', date: todayStr, tag: 'customer', priority: 'high', reminder: false, completed: false, archived: false, statusClosed: false, assignee: '王五' },
-            { id: genId(), title: '提交季度总结', date: getDateOffset(-1), tag: 'boss', priority: 'high', reminder: false, completed: true, archived: false, statusClosed: false, assignee: '张三' },
-            { id: genId(), title: '生产排期确认', date: getDateOffset(-1), tag: 'product', priority: 'medium', reminder: false, completed: true, archived: false, statusClosed: false, assignee: '' },
-            { id: genId(), title: '设备保养', date: getDateOffset(-2), tag: 'equip', priority: 'low', reminder: false, completed: true, archived: false, statusClosed: false, assignee: '' },
-            { id: genId(), title: '修复线上 bug', date: getDateOffset(-3), tag: 'project', priority: 'high', reminder: false, completed: true, archived: false, statusClosed: false, assignee: '王五' },
-            { id: genId(), title: '产能分析报告', date: getDateOffset(-4), tag: 'capacity', priority: 'medium', reminder: false, completed: true, archived: false, statusClosed: false, assignee: '' },
-            { id: genId(), title: '制程优化方案', date: getDateOffset(-5), tag: 'equip', priority: 'medium', reminder: false, completed: true, archived: false, statusClosed: false, assignee: '' },
-            { id: genId(), title: '写项目提案', date: getDateOffset(-6), tag: 'project', priority: 'high', reminder: false, completed: true, archived: false, statusClosed: false, assignee: '李四' },
-            { id: genId(), title: '客户回访', date: getDateOffset(1), tag: 'customer', priority: 'low', reminder: false, completed: false, archived: false, statusClosed: false, assignee: '' },
-            { id: genId(), title: '客户演示准备', date: getDateOffset(1), tag: 'project', priority: 'high', reminder: false, completed: false, archived: false, statusClosed: false, assignee: '张三' },
-            { id: genId(), title: '产能评估', date: getDateOffset(2), tag: 'capacity', priority: 'medium', reminder: false, completed: false, archived: false, statusClosed: false, assignee: '' },
-            { id: genId(), title: '上线部署', date: getDateOffset(3), tag: 'project', priority: 'high', reminder: false, completed: false, archived: false, statusClosed: false, assignee: '王五' },
-        ];
-        saveData();
-    }
 
     // ===== CUSTOM TAG REGISTRY =====
     // Built-in tags with preset colors
