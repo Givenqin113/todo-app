@@ -519,14 +519,12 @@
             // First load: fetch remote data, then use it as source of truth
             dbRef.once('value', (snapshot) => {
                 const remoteData = snapshot.val();
-                if (remoteData !== null) {
-                    // Remote exists: use it as truth, overwrite local
-                    tasks = Array.isArray(remoteData) ? remoteData : [];
-                } else if (tasks.length > 0) {
-                    // Remote empty but local has data: push local to remote
-                    pushToFirebase();
+                // Firebase is always the source of truth
+                if (remoteData !== null && Array.isArray(remoteData)) {
+                    tasks = remoteData;
+                } else {
+                    tasks = []; // Firebase is empty, clear local too
                 }
-                // If both empty, user simply has no tasks yet
                 saveDataLocal();
                 renderHome();
                 showOverdueReminder();
