@@ -502,6 +502,8 @@
     let firebaseReady = false;
     let dbRef = null;
 
+    let firebaseInitialized = false;
+
     function initFirebase() {
         try {
             const app = firebase.initializeApp({
@@ -514,25 +516,46 @@
             firebaseReady = true;
             const indicator = document.getElementById('sync-indicator');
             if (indicator) { indicator.style.opacity = '1'; indicator.title = '云端已同步'; }
-            listenForRemoteChanges();
+            // First load: fetch remote data, then use it as source of truth
             dbRef.once('value', (snapshot) => {
-                if (!snapshot.val() && tasks.length > 0) pushToFirebase();
+                const remoteData = snapshot.val();
+                if (remoteData !== null) {
+                    // Remote exists: use it as truth, overwrite local
+                    tasks = Array.isArray(remoteData) ? remoteData : [];
+                } else if (tasks.length > 0) {
+                    // Remote empty but local has data: push local to remote
+                    pushToFirebase();
+                }
+                // If both empty, seedDemoData already ran in loadData()
+                saveDataLocal();
+                renderHome();
+                showOverdueReminder();
+                firebaseInitialized = true;
+                // Now start listening for ongoing changes
+                listenForRemoteChanges();
             });
         } catch (e) {
             console.warn('Firebase init failed, using local-only mode:', e.message);
             firebaseReady = false;
+            firebaseInitialized = true;
+            renderHome();
+            showOverdueReminder();
         }
     }
 
     function listenForRemoteChanges() {
         if (!dbRef) return;
         dbRef.on('value', (snapshot) => {
+            if (!firebaseInitialized) return; // Skip the initial once('value') we already handled
             const remoteData = snapshot.val();
-            if (remoteData && Array.isArray(remoteData)) {
+            if (remoteData === null) {
+                tasks = [];
+            } else if (Array.isArray(remoteData)) {
                 tasks = remoteData;
-                saveDataLocal();
-                renderHome();
             }
+            saveDataLocal();
+            renderHome();
+            showOverdueReminder();
         });
     }
 
@@ -1346,13 +1369,10 @@
     // ===== INIT =====
     document.addEventListener('DOMContentLoaded', () => {
         loadData();
-        initFirebase();
-        renderHome();
+        initFirebase(); // renderHome() will be called inside Firebase callback or as fallback
         lucide.createIcons();
         // Bind confirm ok button
         document.getElementById('confirm-ok-btn').addEventListener('click', () => { if (confirmCallback) confirmCallback(); });
-        // Show overdue reminder on desktop after data loads
-        setTimeout(showOverdueReminder, 800);
     });
     </script>
 </body>
