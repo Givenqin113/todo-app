@@ -381,13 +381,15 @@
             <div class="card" style="padding: 16px; margin-bottom: 16px;">
                 <canvas id="bar-chart" height="180"></canvas>
             </div>
-            <div class="stat-card mb-4">
-                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">分类完成情况</h3>
-                <div id="category-stats"></div>
-            </div>
-            <div class="stat-card mb-4" id="assignee-stats-card" style="display:none;">
-                <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 16px;">负责人完成情况</h3>
-                <div id="assignee-stats"></div>
+            <div class="flex gap-3 mb-4">
+                <div class="stat-card flex-1">
+                    <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">分类完成</h3>
+                    <div id="category-stats"></div>
+                </div>
+                <div class="stat-card flex-1" id="assignee-stats-card" style="display:none;">
+                    <h3 style="font-size: 15px; font-weight: 600; margin-bottom: 12px;">负责人完成</h3>
+                    <div id="assignee-stats"></div>
+                </div>
             </div>
             <div class="archive-item" onclick="showArchived()">
                 <div class="flex items-center gap-3">
@@ -475,6 +477,27 @@
             </div>
         </div>
         <div style="padding: 0 16px 40px;">
+            <!-- Filter bar -->
+            <div style="margin-bottom: 12px;">
+                <div class="flex items-center gap-2 mb-2">
+                    <span style="font-size: 12px; color: var(--color-text-tertiary); font-weight: 500; flex-shrink: 0;">优先级</span>
+                    <div class="flex gap-1 flex-wrap" id="filter-priority-pills">
+                        <span class="filter-pill active" data-val="high" onclick="toggleAllFilter('priority','high')" style="font-size: 11px; padding: 3px 10px; border-radius: 9999px; cursor: pointer; border: 1px solid var(--priority-high); font-weight: 600; transition: all 150ms;">高</span>
+                        <span class="filter-pill active" data-val="medium" onclick="toggleAllFilter('priority','medium')" style="font-size: 11px; padding: 3px 10px; border-radius: 9999px; cursor: pointer; border: 1px solid var(--priority-medium); font-weight: 600; transition: all 150ms;">中</span>
+                        <span class="filter-pill active" data-val="low" onclick="toggleAllFilter('priority','low')" style="font-size: 11px; padding: 3px 10px; border-radius: 9999px; cursor: pointer; border: 1px solid var(--priority-low); font-weight: 600; transition: all 150ms;">低</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2 mb-2">
+                    <span style="font-size: 12px; color: var(--color-text-tertiary); font-weight: 500; flex-shrink: 0;">状态</span>
+                    <div class="flex gap-1" id="filter-status-pills">
+                        <span class="filter-pill active" data-val="open" onclick="toggleAllFilter('status','open')" style="font-size: 11px; padding: 3px 10px; border-radius: 9999px; cursor: pointer; border: 1px solid rgba(108,92,231,0.5); font-weight: 600; transition: all 150ms;">Open</span>
+                        <span class="filter-pill active" data-val="close" onclick="toggleAllFilter('status','close')" style="font-size: 11px; padding: 3px 10px; border-radius: 9999px; cursor: pointer; border: 1px solid rgba(0,214,143,0.5); font-weight: 600; transition: all 150ms;">Close</span>
+                    </div>
+                </div>
+                <div class="flex justify-end">
+                    <button onclick="resetAllFilters()" style="font-size: 12px; color: var(--color-primary); background: none; border: none; cursor: pointer; font-family: inherit; font-weight: 500; padding: 2px 6px;">重置筛选</button>
+                </div>
+            </div>
             <div id="all-tasks-list"></div>
         </div>
     </div>
@@ -1140,25 +1163,52 @@
         const ctx = document.getElementById('bar-chart').getContext('2d');
         if (barChart) barChart.destroy();
         const filtered = getFilteredTasks();
-        let labels, data;
+        let labels, completedData, openData;
         if (statTab === 'week') {
             labels = ['日','一','二','三','四','五','六'];
-            data = Array(7).fill(0);
+            completedData = Array(7).fill(0);
+            openData = Array(7).fill(0);
             const today = new Date(); const weekStart = new Date(today); weekStart.setDate(today.getDate() - today.getDay());
-            filtered.forEach(t => { const d = new Date(t.date); const diff = Math.floor((d - weekStart) / 86400000); if (diff >= 0 && diff < 7 && t.completed) data[diff]++; });
+            filtered.forEach(t => {
+                const d = new Date(t.date); const diff = Math.floor((d - weekStart) / 86400000);
+                if (diff >= 0 && diff < 7) {
+                    if (t.completed) completedData[diff]++; else openData[diff]++;
+                }
+            });
         } else {
             labels = Array.from({length: 30}, (_, i) => `${i+1}`);
-            data = Array(30).fill(0);
+            completedData = Array(30).fill(0);
+            openData = Array(30).fill(0);
             const now = new Date();
-            filtered.forEach(t => { const d = new Date(t.date); if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) { const day = d.getDate() - 1; if (day >= 0 && day < 30 && t.completed) data[day]++; } });
+            filtered.forEach(t => {
+                const d = new Date(t.date);
+                if (d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()) {
+                    const day = d.getDate() - 1;
+                    if (day >= 0 && day < 30) {
+                        if (t.completed) completedData[day]++; else openData[day]++;
+                    }
+                }
+            });
         }
         barChart = new Chart(ctx, {
             type: 'bar',
-            data: { labels, datasets: [{ data, backgroundColor: 'rgba(108, 92, 231, 0.6)', borderRadius: 4, borderSkipped: false, barPercentage: statTab === 'week' ? 0.5 : 0.7 }] },
+            data: {
+                labels,
+                datasets: [
+                    { label: '已完成', data: completedData, backgroundColor: 'rgba(108, 92, 231, 0.7)', borderRadius: 4, borderSkipped: false, barPercentage: statTab === 'week' ? 0.5 : 0.7 },
+                    { label: '进行中', data: openData, backgroundColor: 'rgba(253, 203, 110, 0.5)', borderRadius: 4, borderSkipped: false, barPercentage: statTab === 'week' ? 0.5 : 0.7 }
+                ]
+            },
             options: {
                 responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false }, tooltip: { backgroundColor: '#2A2A4A', titleColor: '#F0F0F5', bodyColor: '#A0A0B8', borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1, cornerRadius: 8, padding: 10 } },
-                scales: { x: { grid: { display: false }, ticks: { color: '#6B6B85', font: { size: 10 }, maxRotation: 0 } }, y: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#6B6B85', font: { size: 10 }, stepSize: 1 }, beginAtZero: true } }
+                plugins: {
+                    legend: { display: true, position: 'top', align: 'end', labels: { color: '#A0A0B8', font: { size: 11 }, boxWidth: 10, boxHeight: 10, borderRadius: 2, useBorderRadius: true, padding: 12 } },
+                    tooltip: { backgroundColor: '#2A2A4A', titleColor: '#F0F0F5', bodyColor: '#A0A0B8', borderColor: 'rgba(255,255,255,0.08)', borderWidth: 1, cornerRadius: 8, padding: 10 }
+                },
+                scales: {
+                    x: { stacked: true, grid: { display: false }, ticks: { color: '#6B6B85', font: { size: 10 }, maxRotation: 0 } },
+                    y: { stacked: true, grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#6B6B85', font: { size: 10 }, stepSize: 1 }, beginAtZero: true }
+                }
             }
         });
     }
@@ -1187,10 +1237,10 @@
                 const icons = { work: 'briefcase', personal: 'user', health: 'heart', study: 'book-open' };
                 const icon = icons[tagKey] || 'tag';
                 const isActive = statFilterType === 'tag' && statFilterValue === tagKey;
-                html += `<div class="flex items-center gap-3 mb-4" style="cursor:pointer; padding: 4px; margin-left: -4px; border-radius: var(--radius-md); transition: background 150ms; ${isActive ? 'background: var(--color-primary-lighter);' : ''}" onclick="filterByTag('${tagKey}')">
-                    <div class="flex h-10 w-10 items-center justify-center rounded-xl" style="background: ${info.bg};"><i data-lucide="${icon}" style="width:18px;height:18px;color:${info.color}"></i></div>
-                    <div class="flex-1">
-                        <div class="flex items-center justify-between mb-1"><span style="font-size: 14px; font-weight: 500;">${info.label}</span><span style="font-size: 13px; color: var(--color-text-secondary);">${pct}% <span style="font-size:11px;color:var(--color-text-tertiary);">${catDone}/${catTasks.length}</span></span></div>
+                html += `<div class="flex items-center gap-2 mb-3" style="cursor:pointer; padding: 4px; margin-left: -4px; border-radius: var(--radius-md); transition: background 150ms; ${isActive ? 'background: var(--color-primary-lighter);' : ''}" onclick="filterByTag('${tagKey}')">
+                    <div class="flex h-8 w-8 items-center justify-center rounded-lg" style="background: ${info.bg}; flex-shrink: 0;"><i data-lucide="${icon}" style="width:14px;height:14px;color:${info.color}"></i></div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between mb-1"><span style="font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${info.label}</span><span style="font-size: 12px; color: var(--color-text-secondary); flex-shrink: 0; margin-left: 4px;">${pct}%</span></div>
                         <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%; background: ${info.color};"></div></div>
                     </div>
                 </div>`;
@@ -1222,10 +1272,10 @@
             const aDone = aTasks.filter(t => t.completed).length;
             const pct = aTasks.length > 0 ? Math.round(aDone / aTasks.length * 100) : 0;
             const isActive = statFilterType === 'assignee' && statFilterValue === name;
-            html += `<div class="flex items-center gap-3 mb-4" style="cursor:pointer; padding: 4px; margin-left: -4px; border-radius: var(--radius-md); transition: background 150ms; ${isActive ? 'background: var(--color-primary-lighter);' : ''}" onclick="filterByAssignee('${name.replace(/'/g, "\\'")}')">
-                <div class="flex h-10 w-10 items-center justify-center rounded-xl" style="background: ${bg};"><i data-lucide="user" style="width:18px;height:18px;color:${color}"></i></div>
-                <div class="flex-1">
-                    <div class="flex items-center justify-between mb-1"><span style="font-size: 14px; font-weight: 500;">${name}</span><span style="font-size: 13px; color: var(--color-text-secondary);">${pct}% <span style="font-size:11px;color:var(--color-text-tertiary);">${aDone}/${aTasks.length}</span></span></div>
+            html += `<div class="flex items-center gap-2 mb-3" style="cursor:pointer; padding: 4px; margin-left: -4px; border-radius: var(--radius-md); transition: background 150ms; ${isActive ? 'background: var(--color-primary-lighter);' : ''}" onclick="filterByAssignee('${name.replace(/'/g, "\\'")}')">
+                <div class="flex h-8 w-8 items-center justify-center rounded-lg" style="background: ${bg}; flex-shrink: 0;"><i data-lucide="user" style="width:14px;height:14px;color:${color}"></i></div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between mb-1"><span style="font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${name}</span><span style="font-size: 12px; color: var(--color-text-secondary); flex-shrink: 0; margin-left: 4px;">${pct}%</span></div>
                     <div class="progress-bar"><div class="progress-fill" style="width: ${pct}%; background: ${color};"></div></div>
                 </div>
             </div>`;
@@ -1235,63 +1285,107 @@
     }
 
     // ===== ALL TASKS LIST (as page) =====
-    function showAllTasks() {
+    let allFilters = { priority: { high: true, medium: true, low: true }, status: { open: true, close: true } };
+
+    function toggleAllFilter(type, val) {
+        allFilters[type][val] = !allFilters[type][val];
+        updateFilterPills();
+        renderAllTasksList();
+    }
+
+    function resetAllFilters() {
+        allFilters = { priority: { high: true, medium: true, low: true }, status: { open: true, close: true } };
+        updateFilterPills();
+        renderAllTasksList();
+    }
+
+    function updateFilterPills() {
+        const pColors = { high: 'var(--priority-high)', medium: 'var(--priority-medium)', low: 'var(--priority-low)' };
+        const pBgs = { high: 'var(--state-error-light)', medium: 'var(--state-warning-light)', low: 'var(--state-info-light)' };
+        document.querySelectorAll('#filter-priority-pills .filter-pill').forEach(el => {
+            const v = el.dataset.val;
+            if (allFilters.priority[v]) {
+                el.style.background = pBgs[v]; el.style.color = pColors[v]; el.style.opacity = '1';
+            } else {
+                el.style.background = 'transparent'; el.style.color = 'var(--color-text-tertiary)'; el.style.opacity = '0.5';
+            }
+        });
+        const sColors = { open: '#6C5CE7', close: '#00D68F' };
+        const sBgs = { open: 'rgba(108,92,231,0.15)', close: 'rgba(0,214,143,0.15)' };
+        document.querySelectorAll('#filter-status-pills .filter-pill').forEach(el => {
+            const v = el.dataset.val;
+            if (allFilters.status[v]) {
+                el.style.background = sBgs[v]; el.style.color = sColors[v]; el.style.opacity = '1';
+            } else {
+                el.style.background = 'transparent'; el.style.color = 'var(--color-text-tertiary)'; el.style.opacity = '0.5';
+            }
+        });
+    }
+
+    function renderAllTasksList() {
         const active = tasks.filter(t => !t.archived).sort((a, b) => {
             if (a.date !== b.date) return a.date.localeCompare(b.date);
-            if (a.time !== b.time) return (a.time || '').localeCompare(b.time || '');
             return 0;
+        }).filter(t => {
+            if (!allFilters.priority[t.priority]) return false;
+            if (t.completed && !allFilters.status.close) return false;
+            if (!t.completed && !allFilters.status.open) return false;
+            return true;
         });
         const container = document.getElementById('all-tasks-list');
         if (active.length === 0) {
-            container.innerHTML = '<p style="text-align:center;color:var(--color-text-tertiary);padding:32px 0;font-size:14px;">暂无待办事项</p>';
-        } else {
-            const todayStr = fmtDate(new Date());
-            const priorityColors = { high: 'var(--priority-high)', medium: 'var(--priority-medium)', low: 'var(--priority-low)' };
-            const priorityBgs = { high: 'var(--state-error-light)', medium: 'var(--state-warning-light)', low: 'var(--state-info-light)' };
-            const priorityLabels = { high: '高', medium: '中', low: '低' };
-            let currentDate = '';
-            let html = '';
-            active.forEach(t => {
-                const isOverdue = !t.completed && t.date < todayStr;
-                const isHigh = t.priority === 'high';
-                // Highlight: overdue gets red-ish border; high priority gets orange-ish border
-                let cardBorder = 'border: 1px solid var(--color-border-subtle);';
-                let cardBg = 'background: var(--color-bg-surface);';
-                if (isOverdue) { cardBorder = 'border: 1px solid rgba(255,107,107,0.4);'; cardBg = 'background: rgba(255,107,107,0.05);'; }
-                else if (isHigh) { cardBorder = 'border: 1px solid rgba(255,170,0,0.3);'; cardBg = 'background: rgba(255,170,0,0.04);'; }
-
-                if (t.date !== currentDate) {
-                    currentDate = t.date;
-                    const weekDays = ['周日','周一','周二','周三','周四','周五','周六'];
-                    const d = new Date(t.date + 'T00:00:00');
-                    const isToday = t.date === todayStr;
-                    const isPast = t.date < todayStr;
-                    const dayLabel = isToday ? '今天' : `${t.date.slice(5)} ${weekDays[d.getDay()]}${isPast ? ' (已过)' : ''}`;
-                    const dayColor = isToday ? 'var(--color-primary)' : isPast ? 'var(--state-error)' : 'var(--color-text-secondary)';
-                    html += `<div class="flex items-center gap-2 mt-4 mb-2"><span style="font-size: 13px; font-weight: 600; color: ${dayColor};">${dayLabel}</span></div>`;
-                }
-                const tc = getTagColor(t.tag), tb = getTagBg(t.tag), tl = getTagLabel(t.tag);
-                const overdueBadge = isOverdue ? `<span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: var(--state-error-light); color: var(--state-error); font-weight: 600;">已过</span>` : '';
-                html += `<div class="flex gap-3 p-3 mb-2 rounded-xl" style="${cardBg} ${cardBorder} box-shadow: var(--shadow-card); transition: transform var(--transition-fast); cursor: pointer;" onclick="showPage('page-home'); setTimeout(()=>selectCalDate('${t.date}'),100);">
-                    <div class="priority-bar" style="background: ${priorityColors[t.priority]};"></div>
-                    <div class="flex items-start gap-3 flex-1 min-w-0">
-                        <div class="task-checkbox ${t.completed ? 'checked' : ''}" onclick="event.stopPropagation(); toggleComplete('${t.id}')">
-                            <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-                        </div>
-                        <div class="flex-1 min-w-0">
-                            <p class="${t.completed ? 'line-through' : ''}" style="font-size: 14px; font-weight: 500; ${t.completed ? 'color: var(--color-text-tertiary);' : isOverdue ? 'color: var(--state-error);' : ''} overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.title}</p>
-                            <div class="flex items-center gap-2 mt-1 flex-wrap">
-                                <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: ${tb}; color: ${tc}; font-weight: 500;">${tl}</span>
-                                <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: ${priorityBgs[t.priority]}; color: ${priorityColors[t.priority]}; font-weight: 600;">${priorityLabels[t.priority]}</span>
-                                ${t.assignee ? `<span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: rgba(255,255,255,0.06); color: var(--color-text-secondary); font-weight: 500;">${t.assignee}</span>` : ''}
-                                ${overdueBadge}
-                            </div>
+            container.innerHTML = '<p style="text-align:center;color:var(--color-text-tertiary);padding:32px 0;font-size:14px;">暂无匹配的待办事项</p>';
+            return;
+        }
+        const todayStr = fmtDate(new Date());
+        const priorityColors = { high: 'var(--priority-high)', medium: 'var(--priority-medium)', low: 'var(--priority-low)' };
+        const priorityBgs = { high: 'var(--state-error-light)', medium: 'var(--state-warning-light)', low: 'var(--state-info-light)' };
+        const priorityLabels = { high: '高', medium: '中', low: '低' };
+        let currentDate = '';
+        let html = '';
+        active.forEach(t => {
+            const isOverdue = !t.completed && t.date < todayStr;
+            const isHigh = t.priority === 'high';
+            let cardBorder = 'border: 1px solid var(--color-border-subtle);';
+            let cardBg = 'background: var(--color-bg-surface);';
+            if (isOverdue) { cardBorder = 'border: 1px solid rgba(255,107,107,0.4);'; cardBg = 'background: rgba(255,107,107,0.05);'; }
+            else if (isHigh) { cardBorder = 'border: 1px solid rgba(255,170,0,0.3);'; cardBg = 'background: rgba(255,170,0,0.04);'; }
+            if (t.date !== currentDate) {
+                currentDate = t.date;
+                const weekDays = ['周日','周一','周二','周三','周四','周五','周六'];
+                const d = new Date(t.date + 'T00:00:00');
+                const isToday = t.date === todayStr;
+                const isPast = t.date < todayStr;
+                const dayLabel = isToday ? '今天' : `${t.date.slice(5)} ${weekDays[d.getDay()]}${isPast ? ' (已过)' : ''}`;
+                const dayColor = isToday ? 'var(--color-primary)' : isPast ? 'var(--state-error)' : 'var(--color-text-secondary)';
+                html += `<div class="flex items-center gap-2 mt-4 mb-2"><span style="font-size: 13px; font-weight: 600; color: ${dayColor};">${dayLabel}</span></div>`;
+            }
+            const tc = getTagColor(t.tag), tb = getTagBg(t.tag), tl = getTagLabel(t.tag);
+            const overdueBadge = isOverdue ? `<span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: var(--state-error-light); color: var(--state-error); font-weight: 600;">已过</span>` : '';
+            html += `<div class="flex gap-3 p-3 mb-2 rounded-xl" style="${cardBg} ${cardBorder} box-shadow: var(--shadow-card); transition: transform var(--transition-fast); cursor: pointer;" onclick="showPage('page-home'); setTimeout(()=>selectCalDate('${t.date}'),100);">
+                <div class="priority-bar" style="background: ${priorityColors[t.priority]};"></div>
+                <div class="flex items-start gap-3 flex-1 min-w-0">
+                    <div class="task-checkbox ${t.completed ? 'checked' : ''}" onclick="event.stopPropagation(); toggleComplete('${t.id}')">
+                        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <p class="${t.completed ? 'line-through' : ''}" style="font-size: 14px; font-weight: 500; ${t.completed ? 'color: var(--color-text-tertiary);' : isOverdue ? 'color: var(--state-error);' : ''} overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${t.title}</p>
+                        <div class="flex items-center gap-2 mt-1 flex-wrap">
+                            <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: ${tb}; color: ${tc}; font-weight: 500;">${tl}</span>
+                            <span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: ${priorityBgs[t.priority]}; color: ${priorityColors[t.priority]}; font-weight: 600;">${priorityLabels[t.priority]}</span>
+                            ${t.assignee ? `<span style="font-size: 11px; padding: 2px 8px; border-radius: 9999px; background: rgba(255,255,255,0.06); color: var(--color-text-secondary); font-weight: 500;">${t.assignee}</span>` : ''}
+                            ${overdueBadge}
                         </div>
                     </div>
-                </div>`;
-            });
-            container.innerHTML = html;
-        }
+                </div>
+            </div>`;
+        });
+        container.innerHTML = html;
+    }
+
+    function showAllTasks() {
+        resetAllFilters();
+        renderAllTasksList();
         showPage('page-all-tasks');
         lucide.createIcons();
     }
